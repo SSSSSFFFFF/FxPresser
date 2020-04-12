@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QDebug>
 #include <QStyledItemDelegate>
 #include <Psapi.h>
 #pragma comment(lib, "psapi.lib")
@@ -65,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent)
         enumrateControls[index].first = checkBox;
         enumrateControls[index].second = spinBox;
 
-        connect(checkBox, &QCheckBox::toggled, this, &MainWindow::on_any_checkBox_toggled);
+        connect(checkBox, &QCheckBox::toggled, this, &MainWindow::on_any_Fx_checkBox_toggled);
     }
 
     connect(&pressTimer, &QTimer::timeout, this, &MainWindow::pressTimerProc);
@@ -105,11 +106,6 @@ void MainWindow::pressTimerProc()
 
     int window_index = ui->comboBox_GameWindows->currentIndex();
 
-    if (window_index == -1)
-    {
-        return;
-    }
-
     QueryPerformanceCounter(&currentCounter);
 
     for (int key_index = 0; key_index < 10; ++key_index)
@@ -119,9 +115,18 @@ void MainWindow::pressTimerProc()
             continue;
         }
 
-        if (getCountersDiffInSeconds(timeStamps[key_index], currentCounter) >= enumrateControls[key_index].second->value())
+        double differ = getCountersDiffInSeconds(timeStamps[key_index], currentCounter);
+        double value = enumrateControls[key_index].second->value();
+        if (differ >= value)
         {
             timeStamps[key_index] = currentCounter;
+            debugLog(currentCounter, VK_F1 + key_index);
+
+            if (window_index == -1)
+            {
+                return;
+            }
+
             pressFunctionKey(gameWindows[window_index], VK_F1 + key_index);
         }
     }
@@ -129,6 +134,11 @@ void MainWindow::pressTimerProc()
 
 void MainWindow::supplyTimerProc()
 {
+    if (!ui->checkBox_Switch->isChecked())
+    {
+        return;
+    }
+
     int window_index = ui->comboBox_GameWindows->currentIndex();
 
     if (window_index == -1)
@@ -342,7 +352,6 @@ QPair<QPoint, QPoint> MainWindow::getPetResourceSamplePoints(QImage image, int p
 
 std::array<float, 3> MainWindow::normalizePixel(QRgb pixel)
 {
-
     float fRed = static_cast<float>(qRed(pixel));
     float fGreen = static_cast<float>(qGreen(pixel));
     float fBlue = static_cast<float>(qBlue(pixel));
@@ -353,9 +362,9 @@ std::array<float, 3> MainWindow::normalizePixel(QRgb pixel)
 
 bool MainWindow::isPixelLowResource(QRgb pixel)
 {
-    static constexpr int threshold = 100;
+    std::array<float, 3> normalized = normalizePixel(pixel);
 
-    auto normalized = normalizePixel(pixel);
+    float maxValue = *std::max_element(normalized.begin(), normalized.end());
 
     return false;
 }
@@ -507,7 +516,17 @@ SConfigData MainWindow::jsonToConfig(QJsonObject json)
     return result;
 }
 
-void MainWindow::on_any_checkBox_toggled(bool checked)
+void MainWindow::debugLog(LARGE_INTEGER timeStamp, int keyCode)
+{
+#if 1
+    double counterInSeconds = static_cast<double>(timeStamp.QuadPart) / counterFrequency.QuadPart;
+    QString text = QStringLiteral("TimePoint= %1s; Key= F%2\n").arg(counterInSeconds, 0, 'f', 2).arg(keyCode - VK_F1 + 1);
+
+    qDebug() << text;
+#endif
+}
+
+void MainWindow::on_any_Fx_checkBox_toggled(bool checked)
 {
     QObject *control = sender();
 
@@ -528,11 +547,12 @@ void MainWindow::on_checkBox_Switch_clicked(bool checked)
     }
 }
 
-void MainWindow::on_pushButton_TestKey_clicked()
+void MainWindow::on_checkBox_AutoPlayerHealth_toggled(bool checked)
 {
-    int game_index = ui->comboBox_GameWindows->currentIndex();
-    int key_index = ui->comboBox_PlayerHealthKey->currentIndex();
+    ui->spinBox_MinPlayerHealth->setEnabled(!checked);
+}
 
-    if (game_index != -1)
-        pressFunctionKey(gameWindows[game_index], VK_F1 + key_index);
+void MainWindow::on_checkBox_AutoPetSupply_toggled(bool checked)
+{
+    ui->spinBox_MinPetHealth->setEnabled(!checked);
 }

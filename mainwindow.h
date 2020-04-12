@@ -65,11 +65,13 @@ public:
     private slots:
     void on_pushButton_UpdateGameWindows_clicked();
 
-    void on_any_checkBox_toggled(bool checked);
+    void on_any_Fx_checkBox_toggled(bool checked);
 
     void on_checkBox_Switch_clicked(bool checked);
 
-    void on_pushButton_TestKey_clicked();
+    void on_checkBox_AutoPlayerHealth_toggled(bool checked);
+
+    void on_checkBox_AutoPetSupply_toggled(bool checked);
 
 private:
     Ui::MainWindow *ui;
@@ -113,7 +115,7 @@ private:
     //截取游戏窗口的某个区域
     QImage getGamePicture(HWND window, QRect rect);
 
-    //按照设定百分比截取血条图片中的一点，允许失败，百分比为100制
+    //按照设定百分比截取血条图片中的一点
     QPoint getPlayerHealthSamplePoint(QImage image, int percent);
     QPair<QPoint, QPoint> getPetResourceSamplePoints(QImage image, int percent);
     std::array<float, 3> normalizePixel(QRgb pixel);
@@ -129,5 +131,7 @@ private:
 
     QJsonObject configToJson(const SConfigData &config);
     SConfigData jsonToConfig(QJsonObject json);
+
+    void debugLog(LARGE_INTEGER timeStamp, int keyCode);
 };
 #endif // MAINWINDOW_H

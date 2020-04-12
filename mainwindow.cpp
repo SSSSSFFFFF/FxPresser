@@ -11,10 +11,10 @@
 
 //多开怎么办
 
-class CharaterBoxDelegate : public QStyledItemDelegate
+class CharacterBoxDelegate : public QStyledItemDelegate
 {
 public:
-    CharaterBoxDelegate(QObject* parent = nullptr)
+    CharacterBoxDelegate(QObject* parent = nullptr)
         : QStyledItemDelegate(parent) {}
 
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
@@ -32,11 +32,9 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     QString checkBoxName, spinBoxName;
-    QCheckBox *checkBox;
-    QDoubleSpinBox *spinBox;
 
     ui->setupUi(this);
-    ui->comboBox_GameWindows->setItemDelegate(new CharaterBoxDelegate);
+    ui->comboBox_GameWindows->setItemDelegate(new CharacterBoxDelegate);
 
     //-----------------------------------------------------------------------------------------------------------
     QueryPerformanceFrequency(&counterFrequency);
@@ -60,8 +58,8 @@ MainWindow::MainWindow(QWidget *parent)
         checkBoxName.sprintf("checkBox_F%d", index + 1);
         spinBoxName.sprintf("doubleSpinBox_F%d", index + 1);
 
-        checkBox = findChild<QCheckBox *>(checkBoxName);
-        spinBox = findChild<QDoubleSpinBox *>(spinBoxName);
+        QCheckBox* checkBox = findChild<QCheckBox *>(checkBoxName);
+        QDoubleSpinBox* spinBox = findChild<QDoubleSpinBox *>(spinBoxName);
 
         enumrateControls[index].first = checkBox;
         enumrateControls[index].second = spinBox;
@@ -106,6 +104,11 @@ void MainWindow::pressTimerProc()
 
     int window_index = ui->comboBox_GameWindows->currentIndex();
 
+    if (window_index == -1)
+    {
+        return;
+    }
+
     QueryPerformanceCounter(&currentCounter);
 
     for (int key_index = 0; key_index < 10; ++key_index)
@@ -119,14 +122,8 @@ void MainWindow::pressTimerProc()
         double value = enumrateControls[key_index].second->value();
         if (differ >= value)
         {
-            timeStamps[key_index] = currentCounter;
             debugLog(currentCounter, VK_F1 + key_index);
-
-            if (window_index == -1)
-            {
-                return;
-            }
-
+            timeStamps[key_index] = currentCounter;
             pressFunctionKey(gameWindows[window_index], VK_F1 + key_index);
         }
     }
@@ -153,7 +150,6 @@ void MainWindow::supplyTimerProc()
         if (key_index != -1)
         {
             QImage healthPicture = getGamePicture(gameWindows[window_index], playerHealthRect);
-            DEFINE_ADAPTER(healthPicture);
 
             if (!healthPicture.isNull())
             {
@@ -177,7 +173,6 @@ void MainWindow::supplyTimerProc()
         if (key_index != -1)
         {
             QImage healthPicture = getGamePicture(gameWindows[window_index], petResourceRect);
-            DEFINE_ADAPTER(healthPicture);
 
             if (!healthPicture.isNull())
             {
@@ -239,11 +234,6 @@ void MainWindow::updateGameWindows()
             if (cppStr.rfind("\\qqffo.exe") == (cppStr.length() - 10))
             {
                 QImage characterPicture = getGamePicture(hWindow, characterNameRect);
-                QImage healthPicture = getGamePicture(hWindow, playerHealthRect);
-                QImage petPicture = getGamePicture(hWindow, petResourceRect);
-                DEFINE_ADAPTER(characterPicture);
-                DEFINE_ADAPTER(healthPicture);
-                DEFINE_ADAPTER(petPicture);
 
                 if (!characterPicture.isNull())
                 {
@@ -333,8 +323,6 @@ QPair<QPoint, QPoint> MainWindow::getPetResourceSamplePoints(QImage image, int p
         1,1,1,2,2,3,4,
         5,6,7,8,10,13
     };
-
-    DEFINE_ADAPTER(image);
 
     if (image.isNull() || image.size() != petResourceRect.size())
     {
@@ -518,7 +506,7 @@ SConfigData MainWindow::jsonToConfig(QJsonObject json)
 
 void MainWindow::debugLog(LARGE_INTEGER timeStamp, int keyCode)
 {
-#if 1
+#ifdef _DEBUG
     double counterInSeconds = static_cast<double>(timeStamp.QuadPart) / counterFrequency.QuadPart;
     QString text = QStringLiteral("TimePoint= %1s; Key= F%2\n").arg(counterInSeconds, 0, 'f', 2).arg(keyCode - VK_F1 + 1);
 
@@ -555,4 +543,9 @@ void MainWindow::on_checkBox_AutoPlayerHealth_toggled(bool checked)
 void MainWindow::on_checkBox_AutoPetSupply_toggled(bool checked)
 {
     ui->spinBox_MinPetHealth->setEnabled(!checked);
+}
+
+void MainWindow::on_comboBox_GameWindows_currentIndexChanged(const QString &text)
+{
+    ui->checkBox_Switch->setEnabled(false);
 }

@@ -41,7 +41,6 @@ struct QImageAdapter
             stride = image.bytesPerLine();
             pixels = image.bits();
         }
-
     }
 };
 
@@ -73,6 +72,8 @@ public:
 
     void on_checkBox_AutoPetSupply_toggled(bool checked);
 
+    void on_comboBox_GameWindows_currentIndexChanged(const QString &text);
+
 private:
     Ui::MainWindow *ui;
 
@@ -87,14 +88,13 @@ private:
     QTimer pressTimer; //固定间隔按键的计时器
     QTimer supplyTimer; //自动补给的计时器
 
+    //10个界面控件
+    std::array<std::pair<QCheckBox *, QDoubleSpinBox *>, 10> enumrateControls;
     std::array<LARGE_INTEGER, 10> timeStamps; //每个按键上次触发的时间点
     LARGE_INTEGER counterFrequency;
 
     //游戏窗口的句柄
     std::vector<HWND> gameWindows;
-
-    //10个界面控件
-    std::array<std::pair<QCheckBox *, QDoubleSpinBox *>, 10> enumrateControls;
 
     //定时器执行的函数
     void pressTimerProc();
@@ -125,10 +125,8 @@ private:
     void readConfig(const QString &filename);
     void writeConfig(const QString &filename);
     void autoWriteConfig();
-
     SConfigData getConfigFromUI();
     void applyConfigToUI(const SConfigData &config);
-
     QJsonObject configToJson(const SConfigData &config);
     SConfigData jsonToConfig(QJsonObject json);
 

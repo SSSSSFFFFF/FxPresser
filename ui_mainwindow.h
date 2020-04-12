@@ -1,0 +1,504 @@
+/********************************************************************************
+** Form generated from reading UI file 'mainwindow.ui'
+**
+** Created by: Qt User Interface Compiler version 5.9.9
+**
+** WARNING! All changes made in this file will be lost when recompiling UI file!
+********************************************************************************/
+
+#ifndef UI_MAINWINDOW_H
+#define UI_MAINWINDOW_H
+
+#include <QtCore/QVariant>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QDoubleSpinBox>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QWidget>
+
+QT_BEGIN_NAMESPACE
+
+class Ui_MainWindow
+{
+public:
+    QWidget *centralwidget;
+    QVBoxLayout *verticalLayout;
+    QPushButton *pushButton_UpdateGameWindows;
+    QHBoxLayout *horizontalLayout_11;
+    QLabel *label_12;
+    QComboBox *comboBox_GameWindows;
+    QHBoxLayout *horizontalLayout_13;
+    QCheckBox *checkBox_Switch;
+    QSpacerItem *horizontalSpacer_11;
+    QHBoxLayout *horizontalLayout;
+    QCheckBox *checkBox_F1;
+    QDoubleSpinBox *doubleSpinBox_F1;
+    QSpacerItem *horizontalSpacer;
+    QHBoxLayout *horizontalLayout_2;
+    QCheckBox *checkBox_F2;
+    QDoubleSpinBox *doubleSpinBox_F2;
+    QSpacerItem *horizontalSpacer_2;
+    QHBoxLayout *horizontalLayout_3;
+    QCheckBox *checkBox_F3;
+    QDoubleSpinBox *doubleSpinBox_F3;
+    QSpacerItem *horizontalSpacer_3;
+    QHBoxLayout *horizontalLayout_4;
+    QCheckBox *checkBox_F4;
+    QDoubleSpinBox *doubleSpinBox_F4;
+    QSpacerItem *horizontalSpacer_4;
+    QHBoxLayout *horizontalLayout_5;
+    QCheckBox *checkBox_F5;
+    QDoubleSpinBox *doubleSpinBox_F5;
+    QSpacerItem *horizontalSpacer_5;
+    QHBoxLayout *horizontalLayout_6;
+    QCheckBox *checkBox_F6;
+    QDoubleSpinBox *doubleSpinBox_F6;
+    QSpacerItem *horizontalSpacer_6;
+    QHBoxLayout *horizontalLayout_7;
+    QCheckBox *checkBox_F7;
+    QDoubleSpinBox *doubleSpinBox_F7;
+    QSpacerItem *horizontalSpacer_7;
+    QHBoxLayout *horizontalLayout_8;
+    QCheckBox *checkBox_F8;
+    QDoubleSpinBox *doubleSpinBox_F8;
+    QSpacerItem *horizontalSpacer_8;
+    QHBoxLayout *horizontalLayout_9;
+    QCheckBox *checkBox_F9;
+    QDoubleSpinBox *doubleSpinBox_F9;
+    QSpacerItem *horizontalSpacer_9;
+    QHBoxLayout *horizontalLayout_10;
+    QCheckBox *checkBox_F10;
+    QDoubleSpinBox *doubleSpinBox_F10;
+    QSpacerItem *horizontalSpacer_10;
+    QHBoxLayout *horizontalLayout_12;
+    QCheckBox *checkBox_AutoPlayerHealth;
+    QSpinBox *spinBox_MinPlayerHealth;
+    QComboBox *comboBox_PlayerHealthKey;
+    QHBoxLayout *horizontalLayout_15;
+    QCheckBox *checkBox_AutoPetSupply;
+    QSpinBox *spinBox_MinPetHealth;
+    QComboBox *comboBox_PetHealthKey;
+
+    void setupUi(QMainWindow *MainWindow)
+    {
+        if (MainWindow->objectName().isEmpty())
+            MainWindow->setObjectName(QStringLiteral("MainWindow"));
+        MainWindow->resize(223, 461);
+        centralwidget = new QWidget(MainWindow);
+        centralwidget->setObjectName(QStringLiteral("centralwidget"));
+        verticalLayout = new QVBoxLayout(centralwidget);
+        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
+        pushButton_UpdateGameWindows = new QPushButton(centralwidget);
+        pushButton_UpdateGameWindows->setObjectName(QStringLiteral("pushButton_UpdateGameWindows"));
+
+        verticalLayout->addWidget(pushButton_UpdateGameWindows);
+
+        horizontalLayout_11 = new QHBoxLayout();
+        horizontalLayout_11->setObjectName(QStringLiteral("horizontalLayout_11"));
+        label_12 = new QLabel(centralwidget);
+        label_12->setObjectName(QStringLiteral("label_12"));
+
+        horizontalLayout_11->addWidget(label_12);
+
+        comboBox_GameWindows = new QComboBox(centralwidget);
+        comboBox_GameWindows->setObjectName(QStringLiteral("comboBox_GameWindows"));
+        comboBox_GameWindows->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLength);
+        comboBox_GameWindows->setIconSize(QSize(90, 14));
+
+        horizontalLayout_11->addWidget(comboBox_GameWindows);
+
+        horizontalLayout_11->setStretch(1, 1);
+
+        verticalLayout->addLayout(horizontalLayout_11);
+
+        horizontalLayout_13 = new QHBoxLayout();
+        horizontalLayout_13->setObjectName(QStringLiteral("horizontalLayout_13"));
+        checkBox_Switch = new QCheckBox(centralwidget);
+        checkBox_Switch->setObjectName(QStringLiteral("checkBox_Switch"));
+        checkBox_Switch->setChecked(false);
+        checkBox_Switch->setTristate(false);
+
+        horizontalLayout_13->addWidget(checkBox_Switch);
+
+        horizontalSpacer_11 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_13->addItem(horizontalSpacer_11);
+
+
+        verticalLayout->addLayout(horizontalLayout_13);
+
+        horizontalLayout = new QHBoxLayout();
+        horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+        checkBox_F1 = new QCheckBox(centralwidget);
+        checkBox_F1->setObjectName(QStringLiteral("checkBox_F1"));
+
+        horizontalLayout->addWidget(checkBox_F1);
+
+        doubleSpinBox_F1 = new QDoubleSpinBox(centralwidget);
+        doubleSpinBox_F1->setObjectName(QStringLiteral("doubleSpinBox_F1"));
+        doubleSpinBox_F1->setDecimals(1);
+        doubleSpinBox_F1->setMinimum(0.1);
+        doubleSpinBox_F1->setMaximum(365);
+        doubleSpinBox_F1->setSingleStep(0.1);
+        doubleSpinBox_F1->setValue(1);
+
+        horizontalLayout->addWidget(doubleSpinBox_F1);
+
+        horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout->addItem(horizontalSpacer);
+
+
+        verticalLayout->addLayout(horizontalLayout);
+
+        horizontalLayout_2 = new QHBoxLayout();
+        horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
+        checkBox_F2 = new QCheckBox(centralwidget);
+        checkBox_F2->setObjectName(QStringLiteral("checkBox_F2"));
+
+        horizontalLayout_2->addWidget(checkBox_F2);
+
+        doubleSpinBox_F2 = new QDoubleSpinBox(centralwidget);
+        doubleSpinBox_F2->setObjectName(QStringLiteral("doubleSpinBox_F2"));
+        doubleSpinBox_F2->setDecimals(1);
+        doubleSpinBox_F2->setMinimum(0.1);
+        doubleSpinBox_F2->setMaximum(365);
+        doubleSpinBox_F2->setSingleStep(0.1);
+        doubleSpinBox_F2->setValue(1);
+
+        horizontalLayout_2->addWidget(doubleSpinBox_F2);
+
+        horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_2->addItem(horizontalSpacer_2);
+
+
+        verticalLayout->addLayout(horizontalLayout_2);
+
+        horizontalLayout_3 = new QHBoxLayout();
+        horizontalLayout_3->setObjectName(QStringLiteral("horizontalLayout_3"));
+        checkBox_F3 = new QCheckBox(centralwidget);
+        checkBox_F3->setObjectName(QStringLiteral("checkBox_F3"));
+
+        horizontalLayout_3->addWidget(checkBox_F3);
+
+        doubleSpinBox_F3 = new QDoubleSpinBox(centralwidget);
+        doubleSpinBox_F3->setObjectName(QStringLiteral("doubleSpinBox_F3"));
+        doubleSpinBox_F3->setDecimals(1);
+        doubleSpinBox_F3->setMinimum(0.1);
+        doubleSpinBox_F3->setMaximum(365);
+        doubleSpinBox_F3->setSingleStep(0.1);
+        doubleSpinBox_F3->setValue(1);
+
+        horizontalLayout_3->addWidget(doubleSpinBox_F3);
+
+        horizontalSpacer_3 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_3->addItem(horizontalSpacer_3);
+
+
+        verticalLayout->addLayout(horizontalLayout_3);
+
+        horizontalLayout_4 = new QHBoxLayout();
+        horizontalLayout_4->setObjectName(QStringLiteral("horizontalLayout_4"));
+        checkBox_F4 = new QCheckBox(centralwidget);
+        checkBox_F4->setObjectName(QStringLiteral("checkBox_F4"));
+
+        horizontalLayout_4->addWidget(checkBox_F4);
+
+        doubleSpinBox_F4 = new QDoubleSpinBox(centralwidget);
+        doubleSpinBox_F4->setObjectName(QStringLiteral("doubleSpinBox_F4"));
+        doubleSpinBox_F4->setDecimals(1);
+        doubleSpinBox_F4->setMinimum(0.1);
+        doubleSpinBox_F4->setMaximum(365);
+        doubleSpinBox_F4->setSingleStep(0.1);
+        doubleSpinBox_F4->setValue(1);
+
+        horizontalLayout_4->addWidget(doubleSpinBox_F4);
+
+        horizontalSpacer_4 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_4->addItem(horizontalSpacer_4);
+
+
+        verticalLayout->addLayout(horizontalLayout_4);
+
+        horizontalLayout_5 = new QHBoxLayout();
+        horizontalLayout_5->setObjectName(QStringLiteral("horizontalLayout_5"));
+        checkBox_F5 = new QCheckBox(centralwidget);
+        checkBox_F5->setObjectName(QStringLiteral("checkBox_F5"));
+
+        horizontalLayout_5->addWidget(checkBox_F5);
+
+        doubleSpinBox_F5 = new QDoubleSpinBox(centralwidget);
+        doubleSpinBox_F5->setObjectName(QStringLiteral("doubleSpinBox_F5"));
+        doubleSpinBox_F5->setDecimals(1);
+        doubleSpinBox_F5->setMinimum(0.1);
+        doubleSpinBox_F5->setMaximum(365);
+        doubleSpinBox_F5->setSingleStep(0.1);
+        doubleSpinBox_F5->setValue(1);
+
+        horizontalLayout_5->addWidget(doubleSpinBox_F5);
+
+        horizontalSpacer_5 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_5->addItem(horizontalSpacer_5);
+
+
+        verticalLayout->addLayout(horizontalLayout_5);
+
+        horizontalLayout_6 = new QHBoxLayout();
+        horizontalLayout_6->setObjectName(QStringLiteral("horizontalLayout_6"));
+        checkBox_F6 = new QCheckBox(centralwidget);
+        checkBox_F6->setObjectName(QStringLiteral("checkBox_F6"));
+
+        horizontalLayout_6->addWidget(checkBox_F6);
+
+        doubleSpinBox_F6 = new QDoubleSpinBox(centralwidget);
+        doubleSpinBox_F6->setObjectName(QStringLiteral("doubleSpinBox_F6"));
+        doubleSpinBox_F6->setDecimals(1);
+        doubleSpinBox_F6->setMinimum(0.1);
+        doubleSpinBox_F6->setMaximum(365);
+        doubleSpinBox_F6->setSingleStep(0.1);
+        doubleSpinBox_F6->setValue(1);
+
+        horizontalLayout_6->addWidget(doubleSpinBox_F6);
+
+        horizontalSpacer_6 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_6->addItem(horizontalSpacer_6);
+
+
+        verticalLayout->addLayout(horizontalLayout_6);
+
+        horizontalLayout_7 = new QHBoxLayout();
+        horizontalLayout_7->setObjectName(QStringLiteral("horizontalLayout_7"));
+        checkBox_F7 = new QCheckBox(centralwidget);
+        checkBox_F7->setObjectName(QStringLiteral("checkBox_F7"));
+
+        horizontalLayout_7->addWidget(checkBox_F7);
+
+        doubleSpinBox_F7 = new QDoubleSpinBox(centralwidget);
+        doubleSpinBox_F7->setObjectName(QStringLiteral("doubleSpinBox_F7"));
+        doubleSpinBox_F7->setDecimals(1);
+        doubleSpinBox_F7->setMinimum(0.1);
+        doubleSpinBox_F7->setMaximum(365);
+        doubleSpinBox_F7->setSingleStep(0.1);
+        doubleSpinBox_F7->setValue(1);
+
+        horizontalLayout_7->addWidget(doubleSpinBox_F7);
+
+        horizontalSpacer_7 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_7->addItem(horizontalSpacer_7);
+
+
+        verticalLayout->addLayout(horizontalLayout_7);
+
+        horizontalLayout_8 = new QHBoxLayout();
+        horizontalLayout_8->setObjectName(QStringLiteral("horizontalLayout_8"));
+        checkBox_F8 = new QCheckBox(centralwidget);
+        checkBox_F8->setObjectName(QStringLiteral("checkBox_F8"));
+
+        horizontalLayout_8->addWidget(checkBox_F8);
+
+        doubleSpinBox_F8 = new QDoubleSpinBox(centralwidget);
+        doubleSpinBox_F8->setObjectName(QStringLiteral("doubleSpinBox_F8"));
+        doubleSpinBox_F8->setDecimals(1);
+        doubleSpinBox_F8->setMinimum(0.1);
+        doubleSpinBox_F8->setMaximum(365);
+        doubleSpinBox_F8->setSingleStep(0.1);
+        doubleSpinBox_F8->setValue(1);
+
+        horizontalLayout_8->addWidget(doubleSpinBox_F8);
+
+        horizontalSpacer_8 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_8->addItem(horizontalSpacer_8);
+
+
+        verticalLayout->addLayout(horizontalLayout_8);
+
+        horizontalLayout_9 = new QHBoxLayout();
+        horizontalLayout_9->setObjectName(QStringLiteral("horizontalLayout_9"));
+        checkBox_F9 = new QCheckBox(centralwidget);
+        checkBox_F9->setObjectName(QStringLiteral("checkBox_F9"));
+
+        horizontalLayout_9->addWidget(checkBox_F9);
+
+        doubleSpinBox_F9 = new QDoubleSpinBox(centralwidget);
+        doubleSpinBox_F9->setObjectName(QStringLiteral("doubleSpinBox_F9"));
+        doubleSpinBox_F9->setDecimals(1);
+        doubleSpinBox_F9->setMinimum(0.1);
+        doubleSpinBox_F9->setMaximum(365);
+        doubleSpinBox_F9->setSingleStep(0.1);
+        doubleSpinBox_F9->setValue(1);
+
+        horizontalLayout_9->addWidget(doubleSpinBox_F9);
+
+        horizontalSpacer_9 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_9->addItem(horizontalSpacer_9);
+
+
+        verticalLayout->addLayout(horizontalLayout_9);
+
+        horizontalLayout_10 = new QHBoxLayout();
+        horizontalLayout_10->setObjectName(QStringLiteral("horizontalLayout_10"));
+        checkBox_F10 = new QCheckBox(centralwidget);
+        checkBox_F10->setObjectName(QStringLiteral("checkBox_F10"));
+
+        horizontalLayout_10->addWidget(checkBox_F10);
+
+        doubleSpinBox_F10 = new QDoubleSpinBox(centralwidget);
+        doubleSpinBox_F10->setObjectName(QStringLiteral("doubleSpinBox_F10"));
+        doubleSpinBox_F10->setDecimals(1);
+        doubleSpinBox_F10->setMinimum(0.1);
+        doubleSpinBox_F10->setMaximum(365);
+        doubleSpinBox_F10->setSingleStep(0.1);
+        doubleSpinBox_F10->setValue(1);
+
+        horizontalLayout_10->addWidget(doubleSpinBox_F10);
+
+        horizontalSpacer_10 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_10->addItem(horizontalSpacer_10);
+
+
+        verticalLayout->addLayout(horizontalLayout_10);
+
+        horizontalLayout_12 = new QHBoxLayout();
+        horizontalLayout_12->setObjectName(QStringLiteral("horizontalLayout_12"));
+        checkBox_AutoPlayerHealth = new QCheckBox(centralwidget);
+        checkBox_AutoPlayerHealth->setObjectName(QStringLiteral("checkBox_AutoPlayerHealth"));
+
+        horizontalLayout_12->addWidget(checkBox_AutoPlayerHealth);
+
+        spinBox_MinPlayerHealth = new QSpinBox(centralwidget);
+        spinBox_MinPlayerHealth->setObjectName(QStringLiteral("spinBox_MinPlayerHealth"));
+        spinBox_MinPlayerHealth->setMinimum(1);
+        spinBox_MinPlayerHealth->setValue(50);
+
+        horizontalLayout_12->addWidget(spinBox_MinPlayerHealth);
+
+        comboBox_PlayerHealthKey = new QComboBox(centralwidget);
+        comboBox_PlayerHealthKey->setObjectName(QStringLiteral("comboBox_PlayerHealthKey"));
+
+        horizontalLayout_12->addWidget(comboBox_PlayerHealthKey);
+
+        horizontalLayout_12->setStretch(2, 1);
+
+        verticalLayout->addLayout(horizontalLayout_12);
+
+        horizontalLayout_15 = new QHBoxLayout();
+        horizontalLayout_15->setObjectName(QStringLiteral("horizontalLayout_15"));
+        checkBox_AutoPetSupply = new QCheckBox(centralwidget);
+        checkBox_AutoPetSupply->setObjectName(QStringLiteral("checkBox_AutoPetSupply"));
+
+        horizontalLayout_15->addWidget(checkBox_AutoPetSupply);
+
+        spinBox_MinPetHealth = new QSpinBox(centralwidget);
+        spinBox_MinPetHealth->setObjectName(QStringLiteral("spinBox_MinPetHealth"));
+        spinBox_MinPetHealth->setMinimum(1);
+        spinBox_MinPetHealth->setValue(50);
+
+        horizontalLayout_15->addWidget(spinBox_MinPetHealth);
+
+        comboBox_PetHealthKey = new QComboBox(centralwidget);
+        comboBox_PetHealthKey->setObjectName(QStringLiteral("comboBox_PetHealthKey"));
+        comboBox_PetHealthKey->setMaxVisibleItems(10);
+
+        horizontalLayout_15->addWidget(comboBox_PetHealthKey);
+
+        horizontalLayout_15->setStretch(2, 1);
+
+        verticalLayout->addLayout(horizontalLayout_15);
+
+        MainWindow->setCentralWidget(centralwidget);
+
+        retranslateUi(MainWindow);
+
+        comboBox_PlayerHealthKey->setCurrentIndex(0);
+        comboBox_PetHealthKey->setCurrentIndex(0);
+
+
+        QMetaObject::connectSlotsByName(MainWindow);
+    } // setupUi
+
+    void retranslateUi(QMainWindow *MainWindow)
+    {
+        MainWindow->setWindowTitle(QString());
+        pushButton_UpdateGameWindows->setText(QApplication::translate("MainWindow", "\346\233\264\346\226\260\346\270\270\346\210\217\347\252\227\345\217\243\345\210\227\350\241\250", Q_NULLPTR));
+        label_12->setText(QApplication::translate("MainWindow", "\351\200\211\346\213\251\347\252\227\345\217\243", Q_NULLPTR));
+        checkBox_Switch->setText(QApplication::translate("MainWindow", "\345\205\250\345\261\200\345\274\200\345\205\263", Q_NULLPTR));
+        checkBox_F1->setText(QApplication::translate("MainWindow", "F1", Q_NULLPTR));
+        doubleSpinBox_F1->setSuffix(QApplication::translate("MainWindow", " s", Q_NULLPTR));
+        checkBox_F2->setText(QApplication::translate("MainWindow", "F2", Q_NULLPTR));
+        doubleSpinBox_F2->setSuffix(QApplication::translate("MainWindow", " s", Q_NULLPTR));
+        checkBox_F3->setText(QApplication::translate("MainWindow", "F3", Q_NULLPTR));
+        doubleSpinBox_F3->setSuffix(QApplication::translate("MainWindow", " s", Q_NULLPTR));
+        checkBox_F4->setText(QApplication::translate("MainWindow", "F4", Q_NULLPTR));
+        doubleSpinBox_F4->setSuffix(QApplication::translate("MainWindow", " s", Q_NULLPTR));
+        checkBox_F5->setText(QApplication::translate("MainWindow", "F5", Q_NULLPTR));
+        doubleSpinBox_F5->setSuffix(QApplication::translate("MainWindow", " s", Q_NULLPTR));
+        checkBox_F6->setText(QApplication::translate("MainWindow", "F6", Q_NULLPTR));
+        doubleSpinBox_F6->setSuffix(QApplication::translate("MainWindow", " s", Q_NULLPTR));
+        checkBox_F7->setText(QApplication::translate("MainWindow", "F7", Q_NULLPTR));
+        doubleSpinBox_F7->setSuffix(QApplication::translate("MainWindow", " s", Q_NULLPTR));
+        checkBox_F8->setText(QApplication::translate("MainWindow", "F8", Q_NULLPTR));
+        doubleSpinBox_F8->setSuffix(QApplication::translate("MainWindow", " s", Q_NULLPTR));
+        checkBox_F9->setText(QApplication::translate("MainWindow", "F9", Q_NULLPTR));
+        doubleSpinBox_F9->setSuffix(QApplication::translate("MainWindow", " s", Q_NULLPTR));
+        checkBox_F10->setText(QApplication::translate("MainWindow", "F10", Q_NULLPTR));
+        doubleSpinBox_F10->setSuffix(QApplication::translate("MainWindow", " s", Q_NULLPTR));
+        checkBox_AutoPlayerHealth->setText(QApplication::translate("MainWindow", "\344\272\272\347\211\251\350\207\252\345\212\250\345\220\203\347\272\242", Q_NULLPTR));
+        spinBox_MinPlayerHealth->setSuffix(QApplication::translate("MainWindow", " %", Q_NULLPTR));
+        comboBox_PlayerHealthKey->clear();
+        comboBox_PlayerHealthKey->insertItems(0, QStringList()
+         << QApplication::translate("MainWindow", "F1", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F2", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F3", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F4", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F5", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F6", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F7", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F8", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F9", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F10", Q_NULLPTR)
+        );
+        checkBox_AutoPetSupply->setText(QApplication::translate("MainWindow", "\345\256\240\347\211\251\350\207\252\345\212\250\350\241\245\347\273\231", Q_NULLPTR));
+        spinBox_MinPetHealth->setSuffix(QApplication::translate("MainWindow", " %", Q_NULLPTR));
+        comboBox_PetHealthKey->clear();
+        comboBox_PetHealthKey->insertItems(0, QStringList()
+         << QApplication::translate("MainWindow", "F1", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F2", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F3", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F4", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F5", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F6", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F7", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F8", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F9", Q_NULLPTR)
+         << QApplication::translate("MainWindow", "F10", Q_NULLPTR)
+        );
+    } // retranslateUi
+
+};
+
+namespace Ui {
+    class MainWindow: public Ui_MainWindow {};
+} // namespace Ui
+
+QT_END_NAMESPACE
+
+#endif // UI_MAINWINDOW_H

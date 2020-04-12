@@ -1,0 +1,82 @@
+{
+    "AutoPress": [
+        {
+            "Enabled": false,
+            "Interval": 1
+        },
+        {
+            "Enabled": false,
+            "Interval": 1
+        },
+        {
+            "Enabled": false,
+            "Interval": 1
+        },
+        {
+            "Enabled": false,
+            "Interval": 1
+        },
+        {
+            "Enabled": false,
+            "Interval": 1
+        },
+        {
+            "Enabled": false,
+            "Interval": 1
+        },
+        {
+            "Enabled": false,
+            "Interval": 1
+        },
+        {
+            "Enabled": false,
+            "Interval": 1
+        },
+        {
+            "Enabled": false,
+            "Interval": 1
+        },
+        {
+            "Enabled": false,
+            "Interval": 1
+        }
+    ],
+    "AutoPlayerSupply": {
+        "Enabled": false,
+        "Percent": 50,
+        "Key": 0
+    },
+    "AutoPetSupply": {
+        "Enabled": false,
+        "Percent": 50,
+        "Key": 0
+    }
+}
+
+example:
+D:/hand/刺客魔手.exe，则配置文件为D:/hand/config/刺客魔手.json
+
+----文案----
+我在使用现有魔手的过程中，有一些自己不满意的地方，所以自己动手撸了一个
+
+自动施法的间隔精确到0.1秒
+增加全局开关，想停下时不用一个个取消勾了
+人物自动吃红，可自由设置百分比
+宠物自动吃红，可自由设置百分比
+可以保存参数
+
+现在要通过复制多份exe来实现多开保存参数
+
+还没有实现的功能
+人物/宠物自动吃蓝，感觉用不到
+单文件多开，因为还没有想好如何同步参数文件
+
+一些可能会有的疑问
+1. 为什么不自动按组合键
+因为触发组合键的时候，玩家正在按下别的键，也会变成组合键，应该是很令人抓狂的。
+
+2. 会不会封号?
+这个软件涉及到游戏的代码应该是和魔手一模一样。我自己大号测试一个月没有被封。当然，自行决定要不要用。
+
+3. 是否有恶意代码?
+移步此处查看源代码: https://github.com/ClansChen/FxPresser

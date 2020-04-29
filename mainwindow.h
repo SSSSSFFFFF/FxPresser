@@ -102,7 +102,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-private slots:
+    private slots:
     void on_pushButton_UpdateGameWindows_clicked();
 
     void on_any_Fx_checkBox_toggled(bool checked);

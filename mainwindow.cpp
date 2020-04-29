@@ -185,7 +185,6 @@ void MainWindow::supplyTimerProc()
                     {
                         pressFunctionKey(gameWindows[window_index], VK_F1 + key_index);
                     }
-
                 }
 
                 ui->label_PlayerHealth->setPixmap(QPixmap::fromImage(healthPicture));
@@ -703,12 +702,14 @@ void MainWindow::on_pushButton_ReadImage_clicked()
             return;
         }
 
+        sampleImage = sampleImage.copy(ui->label_SampleImage->rect());
+
         if (sampleImage.format() != QImage::Format_RGB888)
         {
             sampleImage = sampleImage.convertToFormat(QImage::Format_RGB888); //看看是否需要这句
         }
 
-        ui->label_SampleImage->setPixmap(QPixmap::fromImage(sampleImage.copy(QRect(ui->label_SampleImage->rect()))));
+        ui->label_SampleImage->setPixmap(QPixmap::fromImage(sampleImage));
     }
 }
 

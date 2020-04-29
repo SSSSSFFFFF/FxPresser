@@ -11,6 +11,8 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonArray>
+#include <QDir>
+
 #include <Windows.h>
 
 #include <vector>
@@ -46,11 +48,50 @@ struct QImageAdapter
 
 #define DEFINE_ADAPTER(var) QImageAdapter var##A(var)
 
+struct WindowHandles
+{
+    HWND window;
+    HDC windowDC, compatibleDC;
+    HBITMAP characterBitmap, playerHealthBitmap, petResourceBitmap;
+
+    WindowHandles(HWND handle)
+    {
+        window = handle;
+        windowDC = GetDC(window);
+        compatibleDC = CreateCompatibleDC(windowDC);
+
+        characterBitmap = CreateCompatibleBitmap(windowDC, 1, 1);
+        playerHealthBitmap = CreateCompatibleBitmap(windowDC, 1, 1);
+        petResourceBitmap = CreateCompatibleBitmap(windowDC, 1, 1);
+    }
+
+    ~WindowHandles()
+    {
+        DeleteObject(characterBitmap);
+        DeleteObject(playerHealthBitmap);
+        DeleteObject(petResourceBitmap);
+        DeleteDC(compatibleDC);
+        ReleaseDC(window, windowDC);
+    }
+};
+
 struct SConfigData
 {
-    std::array<std::pair<bool, float>, 10> presses; //启用, 间隔
+    std::array<std::pair<bool, double>, 10> presses; //启用, 间隔
     std::tuple<bool, int, int> playerSupply; //启用, 百分比, 按键
     std::tuple<bool, int, int> petSupply; //启用, 百分比, 按键
+
+    SConfigData()
+    {
+        for (int index = 0; index < 10; ++index)
+        {
+            presses[index].first = false;
+            presses[index].second = 1.0;
+        }
+
+        playerSupply = std::make_tuple(false, 50, 0);
+        petSupply = std::make_tuple(false, 50, 0);
+    }
 };
 
 class MainWindow : public QMainWindow
@@ -61,18 +102,32 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    private slots:
+private slots:
     void on_pushButton_UpdateGameWindows_clicked();
 
     void on_any_Fx_checkBox_toggled(bool checked);
-
-    void on_checkBox_Switch_clicked(bool checked);
 
     void on_checkBox_AutoPlayerHealth_toggled(bool checked);
 
     void on_checkBox_AutoPetSupply_toggled(bool checked);
 
-    void on_comboBox_GameWindows_currentIndexChanged(const QString &text);
+    void on_comboBox_GameWindows_currentIndexChanged(int index);
+
+    void on_pushButton_SaveConfigAs_clicked();
+
+    void on_pushButton_RenameConfig_clicked();
+
+    void on_comboBox_Configs_currentIndexChanged(int index);
+
+    void on_checkBox_Switch_toggled(bool checked);
+
+    void on_pushButton_DeleteConfig_clicked();
+
+    void on_pushButton_ReadImage_clicked();
+
+    void on_pushButton_TestPlayerSupply_clicked();
+
+    void on_pushButton_TestPetSupply_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -80,7 +135,7 @@ private:
     //角色名取样区域
     const QRect characterNameRect{ 80,22,90,14 };
     //人物血条取样区域
-    const QRect playerHealthRect{ 80,38,90,7 };
+    const QRect playerHealthRect{ 81,38,89,7 };
     //宠物血条蓝条取样区域
     const QRect petResourceRect{ 21,103,34,34 };
 
@@ -89,12 +144,15 @@ private:
     QTimer supplyTimer; //自动补给的计时器
 
     //10个界面控件
-    std::array<std::pair<QCheckBox *, QDoubleSpinBox *>, 10> enumrateControls;
+    std::array<std::pair<QCheckBox *, QDoubleSpinBox *>, 10> enumerateControls;
     std::array<LARGE_INTEGER, 10> timeStamps; //每个按键上次触发的时间点
     LARGE_INTEGER counterFrequency;
 
     //游戏窗口的句柄
     std::vector<HWND> gameWindows;
+
+    //当前配置的名称，切换时用
+    QString currentConfigName;
 
     //定时器执行的函数
     void pressTimerProc();
@@ -115,21 +173,44 @@ private:
     //截取游戏窗口的某个区域
     QImage getGamePicture(HWND window, QRect rect);
 
+    QImage sampleImage;
+
+    void applyBlankPixmapForPlayer();
+    void applyBlankPixmapForPet();
+    void applyBlankPixmapForSample();
+
     //按照设定百分比截取血条图片中的一点
     QPoint getPlayerHealthSamplePoint(QImage image, int percent);
     QPair<QPoint, QPoint> getPetResourceSamplePoints(QImage image, int percent);
+    //像素归一化
     std::array<float, 3> normalizePixel(QRgb pixel);
-    bool isPixelLowResource(QRgb pixel);
+    //判断一点是否为空血条
+    bool isPetLowResource(QRgb pixel);
+    bool isPlayerLowHealth(QRgb pixel);
 
-    QString getConfigPath();
-    void readConfig(const QString &filename);
-    void writeConfig(const QString &filename);
+    //扫描配置文件
+    void firstTimeLoadConfigs();
+
+    //计算?配置文件的路径
+    QString getConfigPath(const QString &name);
+
+    //读取配置文件
+    SConfigData readConfig(const QString &filename);
+    //写入配置文件
+    void writeConfig(const QString &filename, const SConfigData &config);
+    //加载配置文件到UI
+    void loadConfig(const QString &name);
+    //保存当前配置
     void autoWriteConfig();
-    SConfigData getConfigFromUI();
+    //从UI生成配置
+    SConfigData makeConfigFromUI();
+    //将配置应用到UI
     void applyConfigToUI(const SConfigData &config);
+    //应用默认配置
+    void applyDefaultConfigToUI();
+
+    //读写json配置文件用
     QJsonObject configToJson(const SConfigData &config);
     SConfigData jsonToConfig(QJsonObject json);
-
-    void debugLog(LARGE_INTEGER timeStamp, int keyCode);
 };
 #endif // MAINWINDOW_H

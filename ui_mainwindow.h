@@ -20,6 +20,7 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
@@ -42,9 +43,13 @@ public:
     QHBoxLayout *horizontalLayout_11;
     QLabel *label_12;
     QComboBox *comboBox_GameWindows;
+    QVBoxLayout *verticalLayout_6;
+    QLineEdit *lineEdit_WindowTitle;
+    QPushButton *pushButton_ChangeWindowTitle;
     QGroupBox *groupBox_2;
     QVBoxLayout *verticalLayout_2;
     QHBoxLayout *horizontalLayout_16;
+    QSpacerItem *horizontalSpacer_16;
     QCheckBox *checkBox_Switch;
     QSpacerItem *horizontalSpacer_12;
     QHBoxLayout *horizontalLayout;
@@ -123,7 +128,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QStringLiteral("MainWindow"));
-        MainWindow->resize(460, 772);
+        MainWindow->resize(460, 829);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QStringLiteral("centralwidget"));
         horizontalLayout_18 = new QHBoxLayout(centralwidget);
@@ -157,6 +162,21 @@ public:
 
         verticalLayout_3->addLayout(horizontalLayout_11);
 
+        verticalLayout_6 = new QVBoxLayout();
+        verticalLayout_6->setObjectName(QStringLiteral("verticalLayout_6"));
+        lineEdit_WindowTitle = new QLineEdit(groupBox_3);
+        lineEdit_WindowTitle->setObjectName(QStringLiteral("lineEdit_WindowTitle"));
+
+        verticalLayout_6->addWidget(lineEdit_WindowTitle);
+
+        pushButton_ChangeWindowTitle = new QPushButton(groupBox_3);
+        pushButton_ChangeWindowTitle->setObjectName(QStringLiteral("pushButton_ChangeWindowTitle"));
+
+        verticalLayout_6->addWidget(pushButton_ChangeWindowTitle);
+
+
+        verticalLayout_3->addLayout(verticalLayout_6);
+
 
         verticalLayout_5->addWidget(groupBox_3);
 
@@ -166,6 +186,10 @@ public:
         verticalLayout_2->setObjectName(QStringLiteral("verticalLayout_2"));
         horizontalLayout_16 = new QHBoxLayout();
         horizontalLayout_16->setObjectName(QStringLiteral("horizontalLayout_16"));
+        horizontalSpacer_16 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_16->addItem(horizontalSpacer_16);
+
         checkBox_Switch = new QCheckBox(groupBox_2);
         checkBox_Switch->setObjectName(QStringLiteral("checkBox_Switch"));
         checkBox_Switch->setChecked(false);
@@ -621,6 +645,7 @@ public:
         groupBox_3->setTitle(QApplication::translate("MainWindow", "\345\220\257\345\212\250\345\214\272", Q_NULLPTR));
         pushButton_UpdateGameWindows->setText(QApplication::translate("MainWindow", "\346\233\264\346\226\260\346\270\270\346\210\217\347\252\227\345\217\243\345\210\227\350\241\250", Q_NULLPTR));
         label_12->setText(QApplication::translate("MainWindow", "\351\200\211\346\213\251\347\252\227\345\217\243", Q_NULLPTR));
+        pushButton_ChangeWindowTitle->setText(QApplication::translate("MainWindow", "\344\277\256\346\224\271\347\252\227\345\217\243\346\240\207\351\242\230", Q_NULLPTR));
         groupBox_2->setTitle(QApplication::translate("MainWindow", "\350\256\276\347\275\256\345\214\272", Q_NULLPTR));
         checkBox_Switch->setText(QApplication::translate("MainWindow", "\345\205\250\345\261\200\345\274\200\345\205\263", Q_NULLPTR));
         checkBox_F1->setText(QApplication::translate("MainWindow", "F1", Q_NULLPTR));

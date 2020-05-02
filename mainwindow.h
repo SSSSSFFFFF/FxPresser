@@ -77,6 +77,7 @@ struct WindowHandles
 
 struct SConfigData
 {
+    QString title;
     std::array<std::pair<bool, double>, 10> presses; //启用, 间隔
     std::tuple<bool, int, int> playerSupply; //启用, 百分比, 按键
     std::tuple<bool, int, int> petSupply; //启用, 百分比, 按键
@@ -128,6 +129,8 @@ public:
     void on_pushButton_TestPlayerSupply_clicked();
 
     void on_pushButton_TestPetSupply_clicked();
+
+    void on_pushButton_ChangeWindowTitle_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -189,7 +192,7 @@ private:
     bool isPlayerLowHealth(QRgb pixel);
 
     //扫描配置文件
-    void firstTimeLoadConfigs();
+    void scanConfigs();
 
     //计算?配置文件的路径
     QString getConfigPath(const QString &name);

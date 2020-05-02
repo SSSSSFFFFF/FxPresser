@@ -61,7 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
     pressTimer.start(50);
     supplyTimer.start(900);
 
-    firstTimeLoadConfigs();
+    scanConfigs();
 
     //-----------------------------------------------------------------------------------------------------------
     QueryPerformanceFrequency(&counterFrequency);
@@ -227,7 +227,7 @@ void MainWindow::updateGameWindows()
     {
         GetWindowTextA(hWindow, c_string, 512);
 
-        if (strstr(c_string, "QQ自由幻想") != nullptr)
+        if (strstr(c_string, "QQ自由幻想") != nullptr) //此处必须判断标题，qqffo.exe有很多窗口
         {
             DWORD pid;
             GetWindowThreadProcessId(hWindow, &pid);
@@ -401,7 +401,7 @@ bool MainWindow::isPlayerLowHealth(QRgb pixel)
     return false;
 }
 
-void MainWindow::firstTimeLoadConfigs()
+void MainWindow::scanConfigs()
 {
     ui->comboBox_Configs->clear();
 
@@ -495,6 +495,8 @@ SConfigData MainWindow::makeConfigFromUI()
     std::get<1>(result.petSupply) = ui->spinBox_MinPetHealth->value();
     std::get<2>(result.petSupply) = ui->comboBox_PetHealthKey->currentIndex();
 
+    result.title = ui->lineEdit_WindowTitle->text();
+
     return result;
 }
 
@@ -513,6 +515,8 @@ void MainWindow::applyConfigToUI(const SConfigData &config)
     ui->checkBox_AutoPetSupply->setChecked(std::get<0>(config.petSupply));
     ui->spinBox_MinPetHealth->setValue(std::get<1>(config.petSupply));
     ui->comboBox_PetHealthKey->setCurrentIndex(std::get<2>(config.petSupply));
+
+    ui->lineEdit_WindowTitle->setText(config.title);
 }
 
 void MainWindow::applyDefaultConfigToUI()
@@ -544,6 +548,9 @@ QJsonObject MainWindow::configToJson(const SConfigData &config)
     supplyObject[QStringLiteral("Percent")] = std::get<1>(config.petSupply);
     supplyObject[QStringLiteral("Key")] = std::get<2>(config.petSupply);
     result["AutoPetSupply"] = supplyObject;
+
+    result["Title"] = config.title;
+
     return result;
 }
 
@@ -578,6 +585,8 @@ SConfigData MainWindow::jsonToConfig(QJsonObject json)
     std::get<0>(result.petSupply) = supplyObject.take(QStringLiteral("Enabled")).toBool(false);
     std::get<1>(result.petSupply) = supplyObject.take(QStringLiteral("Percent")).toInt(50);
     std::get<2>(result.petSupply) = supplyObject.take(QStringLiteral("Key")).toInt(0);
+
+    result.title = json.take("Title").toString("");
 
     return result;
 }
@@ -771,4 +780,23 @@ void MainWindow::on_pushButton_TestPetSupply_clicked()
     }
 
     ui->label_PetResource->setPixmap(QPixmap::fromImage(healthPicture));
+}
+
+void MainWindow::on_pushButton_ChangeWindowTitle_clicked()
+{
+    int window_index = ui->comboBox_GameWindows->currentIndex();
+
+    if (window_index == -1)
+    {
+        return;
+    }
+
+    QString text = ui->lineEdit_WindowTitle->text();
+
+    if (text.isEmpty())
+    {
+        return;
+    }
+
+    SetWindowTextW(gameWindows[window_index], QStringLiteral("QQ自由幻想 - %1").arg(text).toStdWString().c_str());
 }

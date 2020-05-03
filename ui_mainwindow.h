@@ -26,6 +26,7 @@
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QSpinBox>
 #include <QtWidgets/QStatusBar>
+#include <QtWidgets/QTabWidget>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
@@ -36,6 +37,8 @@ class Ui_MainWindow
 public:
     QWidget *centralwidget;
     QHBoxLayout *horizontalLayout_18;
+    QTabWidget *tabWidget;
+    QWidget *tab;
     QVBoxLayout *verticalLayout_5;
     QGroupBox *groupBox_3;
     QVBoxLayout *verticalLayout_3;
@@ -116,8 +119,12 @@ public:
     QPushButton *pushButton_SaveConfigAs;
     QPushButton *pushButton_RenameConfig;
     QPushButton *pushButton_DeleteConfig;
+    QWidget *tab_2;
     QVBoxLayout *verticalLayout_4;
+    QHBoxLayout *horizontalLayout_19;
+    QSpacerItem *horizontalSpacer_17;
     QLabel *label_SampleImage;
+    QSpacerItem *horizontalSpacer_18;
     QPushButton *pushButton_ReadImage;
     QPushButton *pushButton_TestPlayerSupply;
     QPushButton *pushButton_TestPetSupply;
@@ -128,14 +135,18 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QStringLiteral("MainWindow"));
-        MainWindow->resize(460, 829);
+        MainWindow->resize(274, 871);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QStringLiteral("centralwidget"));
         horizontalLayout_18 = new QHBoxLayout(centralwidget);
         horizontalLayout_18->setObjectName(QStringLiteral("horizontalLayout_18"));
-        verticalLayout_5 = new QVBoxLayout();
+        tabWidget = new QTabWidget(centralwidget);
+        tabWidget->setObjectName(QStringLiteral("tabWidget"));
+        tab = new QWidget();
+        tab->setObjectName(QStringLiteral("tab"));
+        verticalLayout_5 = new QVBoxLayout(tab);
         verticalLayout_5->setObjectName(QStringLiteral("verticalLayout_5"));
-        groupBox_3 = new QGroupBox(centralwidget);
+        groupBox_3 = new QGroupBox(tab);
         groupBox_3->setObjectName(QStringLiteral("groupBox_3"));
         verticalLayout_3 = new QVBoxLayout(groupBox_3);
         verticalLayout_3->setObjectName(QStringLiteral("verticalLayout_3"));
@@ -180,7 +191,7 @@ public:
 
         verticalLayout_5->addWidget(groupBox_3);
 
-        groupBox_2 = new QGroupBox(centralwidget);
+        groupBox_2 = new QGroupBox(tab);
         groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
         verticalLayout_2 = new QVBoxLayout(groupBox_2);
         verticalLayout_2->setObjectName(QStringLiteral("verticalLayout_2"));
@@ -549,7 +560,7 @@ public:
 
         verticalLayout_5->addWidget(groupBox_2);
 
-        groupBox = new QGroupBox(centralwidget);
+        groupBox = new QGroupBox(tab);
         groupBox->setObjectName(QStringLiteral("groupBox"));
         verticalLayout = new QVBoxLayout(groupBox);
         verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
@@ -587,12 +598,18 @@ public:
 
         verticalLayout_5->addWidget(groupBox);
 
-
-        horizontalLayout_18->addLayout(verticalLayout_5);
-
-        verticalLayout_4 = new QVBoxLayout();
+        tabWidget->addTab(tab, QString());
+        tab_2 = new QWidget();
+        tab_2->setObjectName(QStringLiteral("tab_2"));
+        verticalLayout_4 = new QVBoxLayout(tab_2);
         verticalLayout_4->setObjectName(QStringLiteral("verticalLayout_4"));
-        label_SampleImage = new QLabel(centralwidget);
+        horizontalLayout_19 = new QHBoxLayout();
+        horizontalLayout_19->setObjectName(QStringLiteral("horizontalLayout_19"));
+        horizontalSpacer_17 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_19->addItem(horizontalSpacer_17);
+
+        label_SampleImage = new QLabel(tab_2);
         label_SampleImage->setObjectName(QStringLiteral("label_SampleImage"));
         sizePolicy.setHeightForWidth(label_SampleImage->sizePolicy().hasHeightForWidth());
         label_SampleImage->setSizePolicy(sizePolicy);
@@ -601,29 +618,37 @@ public:
         label_SampleImage->setFrameShape(QFrame::Box);
         label_SampleImage->setFrameShadow(QFrame::Plain);
 
-        verticalLayout_4->addWidget(label_SampleImage);
+        horizontalLayout_19->addWidget(label_SampleImage);
 
-        pushButton_ReadImage = new QPushButton(centralwidget);
+        horizontalSpacer_18 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_19->addItem(horizontalSpacer_18);
+
+
+        verticalLayout_4->addLayout(horizontalLayout_19);
+
+        pushButton_ReadImage = new QPushButton(tab_2);
         pushButton_ReadImage->setObjectName(QStringLiteral("pushButton_ReadImage"));
 
         verticalLayout_4->addWidget(pushButton_ReadImage);
 
-        pushButton_TestPlayerSupply = new QPushButton(centralwidget);
+        pushButton_TestPlayerSupply = new QPushButton(tab_2);
         pushButton_TestPlayerSupply->setObjectName(QStringLiteral("pushButton_TestPlayerSupply"));
 
         verticalLayout_4->addWidget(pushButton_TestPlayerSupply);
 
-        pushButton_TestPetSupply = new QPushButton(centralwidget);
+        pushButton_TestPetSupply = new QPushButton(tab_2);
         pushButton_TestPetSupply->setObjectName(QStringLiteral("pushButton_TestPetSupply"));
 
         verticalLayout_4->addWidget(pushButton_TestPetSupply);
 
-        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+        verticalSpacer = new QSpacerItem(20, 490, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
         verticalLayout_4->addItem(verticalSpacer);
 
+        tabWidget->addTab(tab_2, QString());
 
-        horizontalLayout_18->addLayout(verticalLayout_4);
+        horizontalLayout_18->addWidget(tabWidget);
 
         MainWindow->setCentralWidget(centralwidget);
         statusBar = new QStatusBar(MainWindow);
@@ -632,6 +657,7 @@ public:
 
         retranslateUi(MainWindow);
 
+        tabWidget->setCurrentIndex(0);
         comboBox_PlayerHealthKey->setCurrentIndex(0);
         comboBox_PetHealthKey->setCurrentIndex(0);
 
@@ -669,7 +695,7 @@ public:
         checkBox_F10->setText(QApplication::translate("MainWindow", "F10", Q_NULLPTR));
         doubleSpinBox_F10->setSuffix(QApplication::translate("MainWindow", " s", Q_NULLPTR));
         label_PlayerHealth->setText(QString());
-        checkBox_AutoPlayerHealth->setText(QApplication::translate("MainWindow", "\344\272\272\347\211\251\350\207\252\345\212\250\345\220\203\347\272\242", Q_NULLPTR));
+        checkBox_AutoPlayerHealth->setText(QApplication::translate("MainWindow", "\350\247\222\350\211\262\350\241\245\347\273\231", Q_NULLPTR));
         spinBox_MinPlayerHealth->setSuffix(QApplication::translate("MainWindow", " %", Q_NULLPTR));
         comboBox_PlayerHealthKey->clear();
         comboBox_PlayerHealthKey->insertItems(0, QStringList()
@@ -685,7 +711,7 @@ public:
          << QApplication::translate("MainWindow", "F10", Q_NULLPTR)
         );
         label_PetResource->setText(QString());
-        checkBox_AutoPetSupply->setText(QApplication::translate("MainWindow", "\345\256\240\347\211\251\350\207\252\345\212\250\350\241\245\347\273\231", Q_NULLPTR));
+        checkBox_AutoPetSupply->setText(QApplication::translate("MainWindow", "\345\256\240\347\211\251\350\241\245\347\273\231", Q_NULLPTR));
         spinBox_MinPetHealth->setSuffix(QApplication::translate("MainWindow", " %", Q_NULLPTR));
         comboBox_PetHealthKey->clear();
         comboBox_PetHealthKey->insertItems(0, QStringList()
@@ -705,10 +731,12 @@ public:
         pushButton_SaveConfigAs->setText(QApplication::translate("MainWindow", "\345\217\246\345\255\230\344\270\272", Q_NULLPTR));
         pushButton_RenameConfig->setText(QApplication::translate("MainWindow", "\351\207\215\345\221\275\345\220\215", Q_NULLPTR));
         pushButton_DeleteConfig->setText(QApplication::translate("MainWindow", "\345\210\240\351\231\244", Q_NULLPTR));
+        tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("MainWindow", "\345\270\270\347\224\250", Q_NULLPTR));
         label_SampleImage->setText(QString());
         pushButton_ReadImage->setText(QApplication::translate("MainWindow", "\350\257\273\345\217\226\345\233\276\347\211\207", Q_NULLPTR));
         pushButton_TestPlayerSupply->setText(QApplication::translate("MainWindow", "\346\265\213\350\257\225\344\272\272\347\211\251\350\241\245\347\273\231", Q_NULLPTR));
         pushButton_TestPetSupply->setText(QApplication::translate("MainWindow", "\346\265\213\350\257\225\345\256\240\347\211\251\350\241\245\347\273\231", Q_NULLPTR));
+        tabWidget->setTabText(tabWidget->indexOf(tab_2), QApplication::translate("MainWindow", "\346\265\213\350\257\225", Q_NULLPTR));
     } // retranslateUi
 
 };

@@ -80,7 +80,4 @@
   <ItemGroup>
     <ResourceCompile Include=".\FxPresser_resource.rc" />
   </ItemGroup>
-  <ItemGroup>
-    <Natvis Include="ImageWatch_QImageAdapter_RGB888.natvis" />
-  </ItemGroup>
 </Project>

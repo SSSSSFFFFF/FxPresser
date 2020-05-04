@@ -798,5 +798,5 @@ void MainWindow::on_pushButton_ChangeWindowTitle_clicked()
         return;
     }
 
-    SetWindowTextW(gameWindows[window_index], QStringLiteral("QQ自由幻想 - %1").arg(text).toStdWString().c_str());
+    SetWindowTextW(gameWindows[window_index], QStringLiteral("%1%2").arg(ui->label_WindowTitlePrefix->text()).arg(text).toStdWString().c_str());
 }

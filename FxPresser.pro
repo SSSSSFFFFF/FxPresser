@@ -37,4 +37,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
+    ImageWatch_QImageAdapter_RGB888.natvis \
     TODO.txt

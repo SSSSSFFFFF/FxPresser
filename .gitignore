@@ -245,3 +245,4 @@ ModelManifest.xml
 /FxPresser.vcxproj
 /FxPresser.sln
 /.qmake.stash
+/ui_mainwindow.h

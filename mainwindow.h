@@ -74,6 +74,7 @@ private:
 
     //计时部分
     QTimer pressTimer; //固定间隔按键的计时器
+    QTimer supplyTimer; //补给计时器
 
     //10个界面控件
     std::array<std::pair<QCheckBox *, QDoubleSpinBox *>, 10> enumerateControls;
@@ -82,6 +83,11 @@ private:
     std::array<std::chrono::steady_clock::time_point, 10> lastPressedTimePoint;
     //最后一次按键的时间点，用于确定实际按键的时机
     std::chrono::steady_clock::time_point lastAnyPressedTimePoint;
+
+    //上次人物补给的时间点
+    std::chrono::steady_clock::time_point lastPlayerSupplyTimer;
+    //上次吃宝宝糖果的时间点，间隔固定为5秒
+    std::chrono::steady_clock::time_point lastPetSupplyTimer;
 
     //游戏窗口的句柄
     std::vector<HWND> gameWindows;
@@ -134,5 +140,7 @@ private:
     //读写窗口位置
     void writeGlobalConfig();
     void readGlobalConfig();
+
+    static std::array<float, 3> rgb2HSV(QRgb rgbColor);
 };
 #endif // MAINWINDOW_H

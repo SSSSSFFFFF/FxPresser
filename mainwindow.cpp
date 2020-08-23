@@ -67,7 +67,6 @@ MainWindow::MainWindow(QWidget *parent)
     tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
     AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(tp), nullptr, nullptr);
     CloseHandle(hToken);
-
     //-----------------------------------------------------------------------------------------------------------
 }
 
@@ -417,6 +416,41 @@ void MainWindow::readGlobalConfig()
     int y = settings.value("Y", 100).toInt();
 
     setGeometry(x, y, rect.width(), rect.height());
+}
+
+std::array<float, 3> MainWindow::rgb2HSV(QRgb rgbColor)
+{
+    std::array<float, 3> result;
+
+    //opencv->color.cpp->RGB2HSV_f::operator()
+    float b = qBlue(rgbColor), g = qGreen(rgbColor), r = qRed(rgbColor);
+    float h, s, v;
+
+    float vmin, diff;
+
+    v = vmin = r;
+    if (v < g) v = g;
+    if (v < b) v = b;
+    if (vmin > g) vmin = g;
+    if (vmin > b) vmin = b;
+
+    diff = v - vmin;
+    s = diff / (float)(fabs(v) + FLT_EPSILON);
+    diff = (float)(60. / (diff + FLT_EPSILON));
+    if (v == r)
+        h = (g - b)*diff;
+    else if (v == g)
+        h = (b - r)*diff + 120.f;
+    else
+        h = (r - g)*diff + 240.f;
+
+    if (h < 0) h += 360.f;
+
+    result[0] = h;
+    result[1] = s;
+    result[2] = v;
+
+    return result;
 }
 
 void MainWindow::on_any_Fx_checkBox_toggled(bool checked)

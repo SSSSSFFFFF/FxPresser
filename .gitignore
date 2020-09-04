@@ -246,3 +246,6 @@ ModelManifest.xml
 /FxPresser.sln
 /.qmake.stash
 /ui_mainwindow.h
+/Makefile
+/Makefile.Debug
+/Makefile.Release

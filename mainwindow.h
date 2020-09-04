@@ -26,16 +26,63 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+struct QImageAdapter
+{
+    int width = 0;
+    int height = 0;
+    int stride = 0;
+    uchar *pixels = nullptr;
+
+    QImageAdapter() = default;
+
+    QImageAdapter(QImage &image)
+        :QImageAdapter()
+    {
+        if (image.format() == QImage::Format_RGB888)
+        {
+            width = image.width();
+            height = image.height();
+            stride = image.bytesPerLine();
+            pixels = image.bits();
+        }
+    }
+};
+
+#define DEFINE_IMAGE_ADAPTER(var) QImageAdapter var##A(var)
+
 struct SConfigData
 {
     QString title;
-    std::array<std::pair<bool, double>, 10> fxPresses; //F*
-    double interval;
+
+    bool fxSwitch[10]; //Fx开关
+    double fxCD[10]; //单个按键的间隔
+    double fxInterval; //Fx排队间隔
+
+    bool playerSwitch; //人物补给开关
+    int playerPrecent; //人物补给百分比
+    int playerKey; //人物补给按键
+    double playerCD; //人物补给间隔
+
+    bool petSwitch; //宠物补给开关
+    int petPrecent; //宠物补给百分比
+    int petKey; //宠物补给按键
+    double petCD; //宠物补给间隔
 
     SConfigData()
     {
-        fxPresses.fill(std::make_pair(false, 0.1));
-        interval = 0.7;
+        std::fill(fxSwitch, fxSwitch + 10, false);
+        std::fill(fxCD, fxCD + 10, 1.0);
+        fxInterval = 0.8;
+
+        playerSwitch = false;
+        playerPrecent = 50;
+        playerKey = 0;
+        playerCD = 5.2;
+
+        petSwitch = false;
+        petPrecent = 50;
+        petKey = 0;
+        petCD = 5.2;
     }
 };
 
@@ -66,11 +113,44 @@ public:
 
     void on_pushButton_ChangeWindowTitle_clicked();
 
+    void on_pushButton_SetForeground_clicked();
+
+    void on_pushButton_ReadImage_clicked();
+
+    void on_pushButton_TestPlayerSupply_clicked();
+
+    void on_pushButton_TestPetSupply_clicked();
+
+    void on_checkBox_AutoPlayerHealth_toggled(bool checked);
+
+    void on_checkBox_AutoPetSupply_toggled(bool checked);
+
 private:
     Ui::MainWindow *ui;
 
-    //角色名取样区域
-    const QRect characterNameRect{ 80,22,90,14 };
+    //读取的图像
+    QImage sampleImage;
+
+    void applyBlankPixmapForPlayer();
+    void applyBlankPixmapForPet();
+    void applyBlankPixmapForSample();
+
+    //按照设定百分比截取血条图片中的一点
+    static QPoint getPlayerHealthSamplePoint(QImage image, int percent);
+    static QPair<QPoint, QPoint> getPetResourceSamplePoints(QImage image, int percent);
+
+    //像素归一化
+    static std::array<float, 3> normalizePixel(QRgb pixel);
+    //颜色类型转换
+    static std::array<float, 3> rgb2HSV(QRgb rgbColor);
+
+    //判断一点是否为空血条
+    static bool isPixelPetLowResource(QRgb pixel);
+    static bool isPixelPlayerLowHealth(QRgb pixel);
+
+    //对图片判断是否血量低
+    static bool isPlayerLowHealth(QImage sample, int precent);
+    static bool isPetLowHealth(QImage sample, int precent);
 
     //计时部分
     QTimer pressTimer; //固定间隔按键的计时器
@@ -78,7 +158,6 @@ private:
 
     //10个界面控件
     std::array<std::pair<QCheckBox *, QDoubleSpinBox *>, 10> enumerateControls;
-
     //每个按键上次触发的时间点，用于计算单个按键的间隔
     std::array<std::chrono::steady_clock::time_point, 10> lastPressedTimePoint;
     //最后一次按键的时间点，用于确定实际按键的时机
@@ -86,7 +165,7 @@ private:
 
     //上次人物补给的时间点
     std::chrono::steady_clock::time_point lastPlayerSupplyTimer;
-    //上次吃宝宝糖果的时间点，间隔固定为5秒
+    //上次吃宝宝糖果的时间点
     std::chrono::steady_clock::time_point lastPetSupplyTimer;
 
     //游戏窗口的句柄
@@ -138,9 +217,7 @@ private:
     SConfigData jsonToConfig(QJsonObject json);
 
     //读写窗口位置
-    void writeGlobalConfig();
-    void readGlobalConfig();
-
-    static std::array<float, 3> rgb2HSV(QRgb rgbColor);
+    void writeWindowPos();
+    void readWindowPos();
 };
 #endif // MAINWINDOW_H

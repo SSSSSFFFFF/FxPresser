@@ -12,6 +12,8 @@
 #include <QPainter>
 #include <QSettings>
 #include <QDateTime>
+#include <QDesktopServices>
+#include <QUrl>
 #include <Psapi.h>
 #pragma comment(lib, "psapi.lib")
 
@@ -882,4 +884,9 @@ void MainWindow::on_pushButton_ScreenShot_clicked()
     {
         image.save(getScreenShotPath(), "png");
     }
+}
+
+void MainWindow::on_pushButton_OpenScreenShotFolder_clicked()
+{
+    QDesktopServices::openUrl(QUrl(/*"file:" +*/ QCoreApplication::applicationDirPath() + "/screenshot", QUrl::TolerantMode));
 }

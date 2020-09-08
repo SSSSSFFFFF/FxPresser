@@ -24,7 +24,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -1113,6 +1113,13 @@
          <widget class="QPushButton" name="pushButton_ScreenShot">
           <property name="text">
            <string>截图</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_OpenScreenShotFolder">
+          <property name="text">
+           <string>打开截图保存位置</string>
           </property>
          </widget>
         </item>

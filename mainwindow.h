@@ -127,6 +127,8 @@ public:
 
     void on_pushButton_ScreenShot_clicked();
 
+    void on_pushButton_OpenScreenShotFolder_clicked();
+
 private:
     Ui::MainWindow *ui;
 

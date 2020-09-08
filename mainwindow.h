@@ -59,12 +59,12 @@ struct SConfigData
     double fxInterval; //Fx排队间隔
 
     bool playerSwitch; //人物补给开关
-    int playerPrecent; //人物补给百分比
+    int playerPercent; //人物补给百分比
     int playerKey; //人物补给按键
     double playerCD; //人物补给间隔
 
     bool petSwitch; //宠物补给开关
-    int petPrecent; //宠物补给百分比
+    int petPercent; //宠物补给百分比
     int petKey; //宠物补给按键
     double petCD; //宠物补给间隔
 
@@ -72,15 +72,15 @@ struct SConfigData
     {
         std::fill(fxSwitch, fxSwitch + 10, false);
         std::fill(fxCD, fxCD + 10, 1.0);
-        fxInterval = 0.8;
+        fxInterval = 0.75;
 
         playerSwitch = false;
-        playerPrecent = 50;
+        playerPercent = 50;
         playerKey = 0;
         playerCD = 5.2;
 
         petSwitch = false;
-        petPrecent = 50;
+        petPercent = 50;
         petKey = 0;
         petCD = 5.2;
     }
@@ -125,14 +125,17 @@ public:
 
     void on_checkBox_AutoPetSupply_toggled(bool checked);
 
+    void on_pushButton_ScreenShot_clicked();
+
 private:
     Ui::MainWindow *ui;
 
     //读取的图像
     QImage sampleImage;
 
-    void applyBlankPixmapForPlayer();
-    void applyBlankPixmapForPet();
+    void applyBlankPixmapForPlayerName();
+    void applyBlankPixmapForPlayerHealth();
+    void applyBlankPixmapForPetResource();
     void applyBlankPixmapForSample();
 
     //按照设定百分比截取血条图片中的一点
@@ -150,7 +153,7 @@ private:
 
     //对图片判断是否血量低
     static bool isPlayerLowHealth(QImage sample, int precent);
-    static bool isPetLowHealth(QImage sample, int precent);
+    static bool isPetLowResource(QImage sample, int precent);
 
     //计时部分
     QTimer pressTimer; //固定间隔按键的计时器
@@ -170,12 +173,14 @@ private:
 
     //游戏窗口的句柄
     std::vector<HWND> gameWindows;
+    std::vector<QPixmap> playerNamePixmaps;
 
     //当前配置的名称，切换时用
     QString currentConfigName;
 
     //定时器执行的函数
     void pressProc();
+    void supplyProc();
 
     //重置按键的计时
     void resetTimeStamp(int index);
@@ -195,7 +200,7 @@ private:
 
     //计算?配置文件的路径
     QString getConfigPath(const QString &name);
-    QString getGlobalConfigPath();
+    QString getScreenShotPath();
 
     //读取配置文件
     SConfigData readConfig(const QString &filename);
@@ -219,5 +224,7 @@ private:
     //读写窗口位置
     void writeWindowPos();
     void readWindowPos();
+
+
 };
 #endif // MAINWINDOW_H

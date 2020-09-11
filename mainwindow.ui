@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>336</width>
-    <height>748</height>
+    <width>226</width>
+    <height>593</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,17 +20,17 @@
    <string>FxPresser</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_3">
+   <layout class="QHBoxLayout" name="horizontalLayout_18">
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
         <string>启动</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout">
+       <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
          <widget class="QPushButton" name="pushButton_UpdateGameWindows">
           <property name="text">
@@ -65,7 +65,7 @@
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_22">
+         <layout class="QVBoxLayout" name="verticalLayout">
           <item>
            <widget class="QLineEdit" name="lineEdit_WindowTitle">
             <property name="minimumSize">
@@ -215,6 +215,81 @@
          </layout>
         </item>
         <item>
+         <widget class="QPushButton" name="pushButton_SetForeground">
+          <property name="text">
+           <string>切换到游戏窗口</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="Line" name="line_4">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_11">
+          <item>
+           <widget class="QLabel" name="label_2">
+            <property name="toolTip">
+             <string>两次按键的最小间隔，防止卡技能</string>
+            </property>
+            <property name="text">
+             <string>按键间隔</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_FxInterval">
+            <property name="suffix">
+             <string> s</string>
+            </property>
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>365.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.750000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_16">
           <item>
            <spacer name="horizontalSpacer_16">
@@ -256,75 +331,6 @@
            </spacer>
           </item>
          </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_11">
-          <item>
-           <widget class="QLabel" name="label_2">
-            <property name="toolTip">
-             <string>两次按键的最小间隔，防止卡技能</string>
-            </property>
-            <property name="text">
-             <string>按键间隔</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_FxInterval">
-            <property name="suffix">
-             <string> s</string>
-            </property>
-            <property name="decimals">
-             <number>1</number>
-            </property>
-            <property name="minimum">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>365.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="value">
-             <double>0.800000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_SetForeground">
-          <property name="text">
-           <string>切换到游戏窗口</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="Line" name="line_4">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>20</height>
-           </size>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
@@ -688,14 +694,14 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>198</width>
-              <height>14</height>
+              <width>89</width>
+              <height>7</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>198</width>
-              <height>14</height>
+              <width>89</width>
+              <height>7</height>
              </size>
             </property>
             <property name="frameShape">
@@ -734,7 +740,7 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_20">
+         <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="0,0,1">
           <item>
            <widget class="QCheckBox" name="checkBox_AutoPlayerSupply">
             <property name="text">
@@ -742,42 +748,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_PlayerInterval">
-            <property name="suffix">
-             <string> s</string>
-            </property>
-            <property name="decimals">
-             <number>1</number>
-            </property>
-            <property name="minimum">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>10.000000000000000</double>
-            </property>
-            <property name="value">
-             <double>5.200000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="0,1">
           <item>
            <widget class="QSpinBox" name="spinBox_MinPlayerHealth">
             <property name="suffix">
@@ -851,13 +821,6 @@
          </layout>
         </item>
         <item>
-         <widget class="Line" name="line_3">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_17">
           <item>
            <spacer name="horizontalSpacer_14">
@@ -882,14 +845,14 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>68</width>
-              <height>68</height>
+              <width>34</width>
+              <height>34</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>68</width>
-              <height>68</height>
+              <width>34</width>
+              <height>34</height>
              </size>
             </property>
             <property name="frameShape">
@@ -922,7 +885,7 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_18">
+         <layout class="QHBoxLayout" name="horizontalLayout_15" stretch="0,0,1">
           <item>
            <widget class="QCheckBox" name="checkBox_AutoPetSupply">
             <property name="text">
@@ -930,42 +893,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_PetInterval">
-            <property name="suffix">
-             <string> s</string>
-            </property>
-            <property name="decimals">
-             <number>1</number>
-            </property>
-            <property name="minimum">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>10.000000000000000</double>
-            </property>
-            <property name="value">
-             <double>5.200000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_15" stretch="0,1">
           <item>
            <widget class="QSpinBox" name="spinBox_MinPetResource">
             <property name="suffix">
@@ -1045,74 +972,13 @@
       </widget>
       <widget class="QWidget" name="tab_3">
        <attribute name="title">
-        <string>测试</string>
+        <string>杂项</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_19">
-          <item>
-           <spacer name="horizontalSpacer_17">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_SampleImage">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>200</width>
-              <height>200</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>200</width>
-              <height>200</height>
-             </size>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::NoFrame</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Plain</enum>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_18">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </item>
-        <item>
          <widget class="QPushButton" name="pushButton_ScreenShot">
           <property name="text">
-           <string>截图</string>
+           <string>无损截图</string>
           </property>
          </widget>
         </item>
@@ -1120,27 +986,6 @@
          <widget class="QPushButton" name="pushButton_OpenScreenShotFolder">
           <property name="text">
            <string>打开截图保存位置</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_ReadImage">
-          <property name="text">
-           <string>读取图片</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_TestPlayerSupply">
-          <property name="text">
-           <string>测试人物补给</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_TestPetSupply">
-          <property name="text">
-           <string>测试宠物补给</string>
           </property>
          </widget>
         </item>
@@ -1163,7 +1008,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <resources/>
  <connections/>

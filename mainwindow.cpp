@@ -4,11 +4,9 @@
 #include <QDir>
 #include <QFile>
 #include <QInputDialog>
-#include <QFileDialog>
 #include <QMessageBox>
 #include <QDebug>
 #include <QStyledItemDelegate>
-#include <QStatusBar>
 #include <QPainter>
 #include <QSettings>
 #include <QDateTime>
@@ -50,7 +48,6 @@ MainWindow::MainWindow(QWidget *parent)
     applyBlankPixmapForPlayerName();
     applyBlankPixmapForPlayerHealth();
     applyBlankPixmapForPetResource();
-    applyBlankPixmapForSample();
 
     readWindowPos();
 
@@ -66,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     connect(&pressTimer, &QTimer::timeout, this, &MainWindow::pressProc);
-    //connect(&supplyTimer, &QTimer::timeout, this, &MainWindow::supplyProc);
+    connect(&supplyTimer, &QTimer::timeout, this, &MainWindow::supplyProc);
 
     QDir dir = QCoreApplication::applicationDirPath();
     dir.mkdir(QStringLiteral("screenshot"));
@@ -88,13 +85,15 @@ MainWindow::MainWindow(QWidget *parent)
 
     pressTimer.setTimerType(Qt::PreciseTimer);
     pressTimer.start(50);
-    //supplyTimer.start(1000);
+
+    supplyTimer.setTimerType(Qt::PreciseTimer);
+    supplyTimer.start(1000);
 }
 
 MainWindow::~MainWindow()
 {
     pressTimer.stop();
-    //supplyTimer.stop();
+    supplyTimer.stop();
 
     autoWriteConfig();
     writeWindowPos();
@@ -141,6 +140,56 @@ void MainWindow::pressProc()
             lastAnyPressedTimePoint = nowTimePoint;
 
             pressKey(gameWindows[window_index], VK_F1 + key_index);
+        }
+    }
+}
+
+void MainWindow::supplyProc()
+{
+    if (!ui->checkBox_Switch->isChecked())
+    {
+        return;
+    }
+
+    int window_index = ui->comboBox_GameWindows->currentIndex();
+
+    if (window_index == -1)
+    {
+        return;
+    }
+
+    if (ui->checkBox_AutoPlayerSupply->isChecked())
+    {
+        int key_index = ui->comboBox_PlayerHealthKey->currentIndex();
+
+        if (key_index != -1)
+        {
+            QImage healthPicture = getGamePicture(gameWindows[window_index], playerHealthRect);
+
+            if (isPlayerLowHealth(healthPicture, ui->spinBox_MinPlayerHealth->value()))
+            {
+                pressKey(gameWindows[window_index], VK_F1 + key_index);
+
+            }
+
+            ui->label_PlayerHealth->setPixmap(QPixmap::fromImage(healthPicture));
+        }
+    }
+
+    if (ui->checkBox_AutoPetSupply->isChecked())
+    {
+        int key_index = ui->comboBox_PetHealthKey->currentIndex();
+
+        if (key_index != -1)
+        {
+            QImage healthPicture = getGamePicture(gameWindows[window_index], petResourceRect);
+
+            if (isPetLowResource(healthPicture, ui->spinBox_MinPetResource->value()))
+            {
+                pressKey(gameWindows[window_index], VK_F1 + key_index);
+            }
+
+            ui->label_PetResource->setPixmap(QPixmap::fromImage(healthPicture));
         }
     }
 }
@@ -362,12 +411,10 @@ SConfigData MainWindow::makeConfigFromUI()
     result.playerSwitch = ui->checkBox_AutoPlayerSupply->isChecked();
     result.playerPercent = ui->spinBox_MinPlayerHealth->value();
     result.playerKey = ui->comboBox_PlayerHealthKey->currentIndex();
-    result.playerCD = ui->doubleSpinBox_PlayerInterval->value();
 
     result.petSwitch = ui->checkBox_AutoPetSupply->isChecked();
     result.petPercent = ui->spinBox_MinPetResource->value();
     result.petKey = ui->comboBox_PetHealthKey->currentIndex();
-    result.petCD = ui->doubleSpinBox_PetInterval->value();
 
     return result;
 }
@@ -386,12 +433,10 @@ void MainWindow::applyConfigToUI(const SConfigData &config)
     ui->checkBox_AutoPlayerSupply->setChecked(config.playerSwitch);
     ui->spinBox_MinPlayerHealth->setValue(config.playerPercent);
     ui->comboBox_PlayerHealthKey->setCurrentIndex(config.playerKey);
-    ui->doubleSpinBox_PlayerInterval->setValue(config.playerCD);
 
     ui->checkBox_AutoPetSupply->setChecked(config.petSwitch);
     ui->spinBox_MinPetResource->setValue(config.petPercent);
     ui->comboBox_PetHealthKey->setCurrentIndex(config.petKey);
-    ui->doubleSpinBox_PetInterval->setValue(config.petCD);
 }
 
 void MainWindow::applyDefaultConfigToUI()
@@ -419,12 +464,10 @@ QJsonObject MainWindow::configToJson(const SConfigData &config)
 
     result["PlayerSwitch"] = config.playerSwitch;
     result["PlayerPercent"] = config.playerPercent;
-    result["PlayerCD"] = config.playerCD;
     result["PlayerKey"] = config.playerKey;
 
     result["PetSwitch"] = config.petSwitch;
     result["PetPercent"] = config.petPercent;
-    result["PetCD"] = config.petCD;
     result["PetKey"] = config.petKey;
 
     return result;
@@ -453,12 +496,10 @@ SConfigData MainWindow::jsonToConfig(QJsonObject json)
 
     result.playerSwitch = json.take("PlayerSwitch").toBool(false);
     result.playerPercent = json.take("PlayerPercent").toInt(50);
-    result.playerCD = json.take("PlayerCD").toDouble(5.2);
     result.playerKey = json.take("PlayerKey").toInt(8);
 
     result.petSwitch = json.take("PetSwitch").toBool(false);
     result.petPercent = json.take("PetPercent").toInt(50);
-    result.petCD = json.take("PetCD").toDouble(5.2);
     result.petKey = json.take("PetKey").toInt(9);
 
     return result;
@@ -523,7 +564,6 @@ std::array<float, 3> MainWindow::rgb2HSV(QRgb rgbColor)
 
 bool MainWindow::isPixelPetLowResource(QRgb pixel)
 {
-    //验证游戏渐黑时的效果
     std::array<float, 3> normalized = normalizePixel(pixel);
 
     //有一个分量大于40%，即有血条/蓝条覆盖
@@ -533,37 +573,62 @@ bool MainWindow::isPixelPetLowResource(QRgb pixel)
 
 bool MainWindow::isPixelPlayerLowHealth(QRgb pixel)
 {
-    //游戏场景过渡时不生效
-    //绿/黄/红/虚血/空血
-    //绿血: H127 S0.9 V170
-    //黄血: H127 S0.9 V170
-    //红血: H127 S0.9 V170
-    //空血: 跟血条背后像素有关
+    auto fp_compare = [](float v1, float v2) {return fabs(v1 - v2) < 0.01f; };
+
+    //绿/黄/红
+    //绿血: H127.0 S0.9  V170.0
+    //黄血: H36.92 S0.87 V255.0
+    //红血: H13.85 S1.0  V221.0
+
     std::array<float, 3> hsvPix = rgb2HSV(pixel);
 
-    return false;
+    float hVal = hsvPix[0];
+    float sVal = hsvPix[1];
+
+    //不是三种血条颜色之一则为需要补给
+    return !(
+        (fp_compare(hVal, 127.0f) && fp_compare(sVal, 0.9f)) ||
+        (fp_compare(hVal, 36.92f) && fp_compare(sVal, 0.87f)) ||
+        (fp_compare(hVal, 13.85f) && fp_compare(sVal, 1.0f)));
 }
 
-bool MainWindow::isPlayerLowHealth(QImage sample, int precent)
+bool MainWindow::isPlayerLowHealth(QImage &sample, int precent)
 {
+    DEFINE_IMAGE_ADAPTER(sample);
+
     if (sample.isNull())
     {
         return false;
     }
 
     QPoint samplePoint = getPlayerHealthSamplePoint(sample, precent);
-    return isPixelPlayerLowHealth(sample.pixel(samplePoint));
+    bool result = isPixelPlayerLowHealth(sample.pixel(samplePoint));
+
+    QPainter painter(&sample);
+    painter.setPen(Qt::white);
+    painter.drawLine(QPoint(samplePoint.x(), 0), QPoint(samplePoint.x(), sample.height()));
+
+    return result;
 }
 
-bool MainWindow::isPetLowResource(QImage sample, int precent)
+bool MainWindow::isPetLowResource(QImage &sample, int precent)
 {
+    DEFINE_IMAGE_ADAPTER(sample);
+
     if (sample.isNull())
     {
         return false;
     }
 
     QPair<QPoint, QPoint> samplePoints = getPetResourceSamplePoints(sample, precent);
-    return isPixelPetLowResource(sample.pixel(samplePoints.first)) || isPixelPetLowResource(sample.pixel(samplePoints.second));
+    bool result = isPixelPetLowResource(sample.pixel(samplePoints.first)) || isPixelPetLowResource(sample.pixel(samplePoints.second));
+
+    QPainter painter(&sample);
+    painter.setPen(Qt::white);
+    painter.drawLine(QPoint(samplePoints.first.x(), 0), QPoint(samplePoints.first.x(), sample.height()));
+    painter.drawLine(QPoint(samplePoints.second.x(), 0), QPoint(samplePoints.second.x(), sample.height()));
+
+    return result;
 }
 
 void MainWindow::on_any_Fx_checkBox_toggled(bool checked)
@@ -697,79 +762,9 @@ void MainWindow::on_pushButton_SetForeground_clicked()
     SetForegroundWindow(gameWindows[window_index]);
 }
 
-void MainWindow::on_pushButton_ReadImage_clicked()
-{
-    QString filename = QFileDialog::getOpenFileName(this, QStringLiteral("选择一张图片"), QString(), QStringLiteral("Images(*.png *.bmp *.jpg)"));
-
-    if (!filename.isEmpty())
-    {
-        if (!sampleImage.load(filename) || sampleImage.width() < ui->label_SampleImage->width() || sampleImage.height() < ui->label_SampleImage->height())
-        {
-            return;
-        }
-
-        sampleImage = sampleImage.copy(ui->label_SampleImage->rect());
-
-        if (sampleImage.format() != QImage::Format_RGB888)
-        {
-            sampleImage = sampleImage.convertToFormat(QImage::Format_RGB888); //看看是否需要这句
-        }
-
-        ui->label_SampleImage->setPixmap(QPixmap::fromImage(sampleImage));
-    }
-}
-
-void MainWindow::on_pushButton_TestPlayerSupply_clicked()
-{
-    if (sampleImage.isNull())
-    {
-        return;
-    }
-
-    QImage healthPicture = sampleImage.copy(playerHealthRect);
-
-    DEFINE_IMAGE_ADAPTER(healthPicture);
-
-    if (isPlayerLowHealth(healthPicture, ui->spinBox_MinPlayerHealth->value()))
-    {
-        statusBar()->showMessage(QStringLiteral("人物血量低"));
-    }
-    else
-    {
-        statusBar()->showMessage(QStringLiteral("人物血量不低"));
-    }
-
-    ui->label_PlayerHealth->setPixmap(QPixmap::fromImage(healthPicture));
-}
-
-void MainWindow::on_pushButton_TestPetSupply_clicked()
-{
-    if (sampleImage.isNull())
-    {
-        return;
-    }
-
-    QImage healthPicture = sampleImage.copy(petResourceRect);
-
-    DEFINE_IMAGE_ADAPTER(healthPicture);
-
-    if (isPetLowResource(healthPicture, ui->spinBox_MinPetResource->value()) || isPetLowResource(healthPicture, ui->spinBox_MinPetResource->value()))
-    {
-        statusBar()->showMessage(QStringLiteral("宠物血量低"));
-    }
-    else
-    {
-        statusBar()->showMessage(QStringLiteral("宠物血量不低"));
-    }
-
-    ui->label_PetResource->setPixmap(QPixmap::fromImage(healthPicture));
-}
-
 void MainWindow::on_checkBox_AutoPlayerHealth_toggled(bool checked)
 {
-    ui->doubleSpinBox_PlayerInterval->setEnabled(!checked);
     ui->spinBox_MinPlayerHealth->setEnabled(!checked);
-    ui->doubleSpinBox_PlayerInterval->setEnabled(!checked);
     ui->comboBox_PlayerHealthKey->setEnabled(!checked);
 
     if (!checked)
@@ -780,9 +775,7 @@ void MainWindow::on_checkBox_AutoPlayerHealth_toggled(bool checked)
 
 void MainWindow::on_checkBox_AutoPetSupply_toggled(bool checked)
 {
-    ui->doubleSpinBox_PetInterval->setEnabled(!checked);
     ui->spinBox_MinPetResource->setEnabled(!checked);
-    ui->doubleSpinBox_PetInterval->setEnabled(!checked);
     ui->comboBox_PetHealthKey->setEnabled(!checked);
 
     if (!checked)
@@ -810,13 +803,6 @@ void MainWindow::applyBlankPixmapForPetResource()
     QPixmap petResourcePixmap(petResourceRect.size() * 2);
     petResourcePixmap.fill(Qt::gray);
     ui->label_PetResource->setPixmap(petResourcePixmap);
-}
-
-void MainWindow::applyBlankPixmapForSample()
-{
-    QPixmap samplePixmap(ui->label_SampleImage->size());
-    samplePixmap.fill(Qt::gray);
-    ui->label_SampleImage->setPixmap(samplePixmap);
 }
 
 QPoint MainWindow::getPlayerHealthSamplePoint(QImage image, int percent)
@@ -873,20 +859,17 @@ void MainWindow::on_pushButton_ScreenShot_clicked()
         return;
     }
 
-    //if (GetForegroundWindow() != gameWindows[window_index])
-    //    return;
-
     RECT clientRect;
     GetClientRect(gameWindows[window_index], &clientRect);
     QImage image = getGamePicture(gameWindows[window_index], QRect(0, 0, clientRect.right, clientRect.bottom));
 
     if (!image.isNull())
     {
-        image.save(getScreenShotPath(), "png");
+        image.save(getScreenShotPath());
     }
 }
 
 void MainWindow::on_pushButton_OpenScreenShotFolder_clicked()
 {
-    QDesktopServices::openUrl(QUrl(/*"file:" +*/ QCoreApplication::applicationDirPath() + "/screenshot", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl(QCoreApplication::applicationDirPath() + "/screenshot", QUrl::TolerantMode));
 }

@@ -61,12 +61,10 @@ struct SConfigData
     bool playerSwitch; //人物补给开关
     int playerPercent; //人物补给百分比
     int playerKey; //人物补给按键
-    double playerCD; //人物补给间隔
 
     bool petSwitch; //宠物补给开关
     int petPercent; //宠物补给百分比
     int petKey; //宠物补给按键
-    double petCD; //宠物补给间隔
 
     SConfigData()
     {
@@ -77,12 +75,10 @@ struct SConfigData
         playerSwitch = false;
         playerPercent = 50;
         playerKey = 0;
-        playerCD = 5.2;
 
         petSwitch = false;
         petPercent = 50;
         petKey = 0;
-        petCD = 5.2;
     }
 };
 
@@ -115,12 +111,6 @@ public:
 
     void on_pushButton_SetForeground_clicked();
 
-    void on_pushButton_ReadImage_clicked();
-
-    void on_pushButton_TestPlayerSupply_clicked();
-
-    void on_pushButton_TestPetSupply_clicked();
-
     void on_checkBox_AutoPlayerHealth_toggled(bool checked);
 
     void on_checkBox_AutoPetSupply_toggled(bool checked);
@@ -132,13 +122,9 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    //读取的图像
-    QImage sampleImage;
-
     void applyBlankPixmapForPlayerName();
     void applyBlankPixmapForPlayerHealth();
     void applyBlankPixmapForPetResource();
-    void applyBlankPixmapForSample();
 
     //按照设定百分比截取血条图片中的一点
     static QPoint getPlayerHealthSamplePoint(QImage image, int percent);
@@ -154,8 +140,8 @@ private:
     static bool isPixelPlayerLowHealth(QRgb pixel);
 
     //对图片判断是否血量低
-    static bool isPlayerLowHealth(QImage sample, int precent);
-    static bool isPetLowResource(QImage sample, int precent);
+    static  bool isPlayerLowHealth(QImage &sample, int precent);
+    static bool isPetLowResource(QImage &sample, int precent);
 
     //计时部分
     QTimer pressTimer; //固定间隔按键的计时器
@@ -226,7 +212,5 @@ private:
     //读写窗口位置
     void writeWindowPos();
     void readWindowPos();
-
-
 };
 #endif // MAINWINDOW_H

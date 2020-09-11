@@ -169,7 +169,6 @@ void MainWindow::supplyProc()
             if (isPlayerLowHealth(healthPicture, ui->spinBox_MinPlayerHealth->value()))
             {
                 pressKey(gameWindows[window_index], VK_F1 + key_index);
-
             }
 
             ui->label_PlayerHealth->setPixmap(QPixmap::fromImage(healthPicture));
@@ -573,12 +572,12 @@ bool MainWindow::isPixelPetLowResource(QRgb pixel)
 
 bool MainWindow::isPixelPlayerLowHealth(QRgb pixel)
 {
-    auto fp_compare = [](float v1, float v2) {return fabs(v1 - v2) < 0.01f; };
+    auto fp_equal = [](float v1, float v2) {return fabs(v1 - v2) < 0.01f; };
 
     //绿/黄/红
-    //绿血: H127.0 S0.9  V170.0
-    //黄血: H36.92 S0.87 V255.0
-    //红血: H13.85 S1.0  V221.0
+    //绿血: H126.67 S0.90  V170.00
+    //黄血:  H36.92 S0.87  V255.00
+    //红血:  H13.85 S1.00  V221.00
 
     std::array<float, 3> hsvPix = rgb2HSV(pixel);
 
@@ -587,9 +586,9 @@ bool MainWindow::isPixelPlayerLowHealth(QRgb pixel)
 
     //不是三种血条颜色之一则为需要补给
     return !(
-        (fp_compare(hVal, 127.0f) && fp_compare(sVal, 0.9f)) ||
-        (fp_compare(hVal, 36.92f) && fp_compare(sVal, 0.87f)) ||
-        (fp_compare(hVal, 13.85f) && fp_compare(sVal, 1.0f)));
+        (fp_equal(hVal, 126.67f) && fp_equal(sVal, 0.90f)) ||
+        (fp_equal(hVal, 36.92f) && fp_equal(sVal, 0.87f)) ||
+        (fp_equal(hVal, 13.85f) && fp_equal(sVal, 1.00f)));
 }
 
 bool MainWindow::isPlayerLowHealth(QImage &sample, int precent)

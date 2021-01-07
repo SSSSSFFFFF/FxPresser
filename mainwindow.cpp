@@ -11,6 +11,7 @@
 #include <QSettings>
 #include <QDateTime>
 #include <QDesktopServices>
+#include <QCryptographicHash>
 #include <QUrl>
 #include <Psapi.h>
 #pragma comment(lib, "psapi.lib")
@@ -38,23 +39,26 @@ public:
     }
 };
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+    gameWindow = nullptr;
+    dc = nullptr;
+    cdc = nullptr;
+
     ui->setupUi(this);
     ui->comboBox_GameWindows->setItemDelegate(new CharacterBoxDelegate);
 
-    applyBlankPixmapForPlayerName();
+    setFixedSize(width(), height());
+
     applyBlankPixmapForPlayerHealth();
     applyBlankPixmapForPetResource();
 
-    readWindowPos();
-
     for (int index = 0; index < 10; ++index)
     {
-        QCheckBox* checkBox = findChild<QCheckBox *>(QStringLiteral("checkBox_F%1").arg(index + 1));
-        QDoubleSpinBox* spinBox = findChild<QDoubleSpinBox *>(QStringLiteral("doubleSpinBox_F%1").arg(index + 1));
+        QCheckBox* checkBox = findChild<QCheckBox*>(QStringLiteral("checkBox_F%1").arg(index + 1));
+        QDoubleSpinBox* spinBox = findChild<QDoubleSpinBox*>(QStringLiteral("doubleSpinBox_F%1").arg(index + 1));
 
         enumerateControls[index].first = checkBox;
         enumerateControls[index].second = spinBox;
@@ -69,7 +73,14 @@ MainWindow::MainWindow(QWidget *parent)
     dir.mkdir(QStringLiteral("screenshot"));
     dir.mkdir(QStringLiteral("config"));
 
-    scanConfigs();
+    //读取参数
+    loadConfig();
+
+    //首次扫描游戏窗口
+    scanGameWindows();
+
+    //首次自动选择游戏窗口
+    selectGameWindow(playerNameMD5);
 
     //-----------------------------------------------------------------------------------------------------------
     //抄的代码..获取读进程信息的权限
@@ -96,14 +107,52 @@ MainWindow::~MainWindow()
     supplyTimer.stop();
 
     autoWriteConfig();
-    writeWindowPos();
+    clearGDI();
 
     delete ui;
 }
 
 void MainWindow::on_pushButton_UpdateGameWindows_clicked()
 {
-    updateGameWindows();
+    scanGameWindows();
+}
+
+void MainWindow::selectGameWindow(const QByteArray& md5)
+{
+    int index;
+
+    if (md5.isEmpty() || playerNameImages.isEmpty())
+    {
+        index = gameWindows.size() - 1;
+    }
+    else
+    {
+        for (int image_index = 0; image_index < playerNameImages.size(); ++image_index)
+        {
+            if (imageHash(playerNameImages[image_index]) == md5)
+            {
+                index = image_index;
+                break;
+            }
+        }
+    }
+
+    ui->comboBox_GameWindows->setCurrentIndex(index);
+}
+
+void MainWindow::initGDI(HWND window)
+{
+    clearGDI();
+
+    gameWindow = window;
+    dc = GetDC(window);
+    cdc = CreateCompatibleDC(dc);
+}
+
+void MainWindow::clearGDI()
+{
+    DeleteDC(cdc);
+    ReleaseDC(gameWindow, dc);
 }
 
 void MainWindow::pressProc()
@@ -164,7 +213,7 @@ void MainWindow::supplyProc()
 
         if (key_index != -1)
         {
-            QImage healthPicture = getGamePicture(gameWindows[window_index], playerHealthRect);
+            QImage healthPicture = getGamePicture(playerHealthRect);
 
             if (isPlayerLowHealth(healthPicture, ui->spinBox_MinPlayerHealth->value()))
             {
@@ -181,7 +230,7 @@ void MainWindow::supplyProc()
 
         if (key_index != -1)
         {
-            QImage healthPicture = getGamePicture(gameWindows[window_index], petResourceRect);
+            QImage healthPicture = getGamePicture(petResourceRect);
 
             if (isPetLowResource(healthPicture, ui->spinBox_MinPetResource->value()))
             {
@@ -204,7 +253,7 @@ void MainWindow::resetAllTimeStamps()
     lastAnyPressedTimePoint = std::chrono::steady_clock::time_point();
 }
 
-void MainWindow::updateGameWindows()
+void MainWindow::scanGameWindows()
 {
     wchar_t c_string[512];
 
@@ -230,16 +279,15 @@ void MainWindow::updateGameWindows()
 
             if (QString::fromWCharArray(c_string).endsWith(QStringLiteral("\\qqffo.exe")))
             {
-                QImage playerNameImage = getGamePicture(hWindow, playerNameRect);
+                initGDI(hWindow);
+                QImage playerNameImage = getGamePicture(playerNameRect);
 
                 if (!playerNameImage.isNull())
                 {
                     ++found;
                     gameWindows.push_back(hWindow);
-                    QPixmap playerNamePix = QPixmap::fromImage(playerNameImage);
-                    playerNamePixmaps.push_back(playerNamePix);
-                    ui->comboBox_GameWindows->addItem(QIcon(playerNamePix), nullptr);
-
+                    playerNameImages.push_back(playerNameImage);
+                    ui->comboBox_GameWindows->addItem(QIcon(QPixmap::fromImage(playerNameImage)), nullptr);
                 }
                 else
                 {
@@ -250,6 +298,8 @@ void MainWindow::updateGameWindows()
 
         hWindow = FindWindowEx(nullptr, hWindow, nullptr, nullptr);
     }
+
+    clearGDI();
 
     if (found + invalid == 0)
     {
@@ -268,17 +318,14 @@ void MainWindow::pressKey(HWND window, UINT code)
     PostMessageA(window, WM_KEYUP, code, 0);
 }
 
-QImage MainWindow::getGamePicture(HWND window, QRect rect)
+QImage MainWindow::getGamePicture(QRect rect)
 {
     std::vector<uchar> pixelBuffer;
     QImage result;
 
-    //抄的代码..
-    HBITMAP hBitmap, hOld;
-    HDC hDC, hcDC;
     BITMAPINFO b;
 
-    if ((IsWindow(window) == FALSE) || (IsIconic(window) == TRUE))
+    if ((IsWindow(gameWindow) == FALSE) || (IsIconic(gameWindow) == TRUE))
         return QImage();
 
     b.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -297,37 +344,20 @@ QImage MainWindow::getGamePicture(HWND window, QRect rect)
     b.bmiColors[0].rgbRed = 8;
     b.bmiColors[0].rgbReserved = 0;
 
-    hDC = GetDC(window);
-    hcDC = CreateCompatibleDC(hDC);
-    hBitmap = CreateCompatibleBitmap(hDC, rect.width(), rect.height());
-    hOld = (HBITMAP)SelectObject(hcDC, hBitmap);
+    HBITMAP hBitmap = CreateCompatibleBitmap(dc, rect.width(), rect.height());
+    SelectObject(cdc, hBitmap);
 
-    BitBlt(hcDC, 0, 0, rect.width(), rect.height(), hDC, rect.left(), rect.top(), SRCCOPY);
+    BitBlt(cdc, 0, 0, rect.width(), rect.height(), dc, rect.left(), rect.top(), SRCCOPY);
     pixelBuffer.resize(rect.width() * rect.height() * 4);
-    GetDIBits(hcDC, hBitmap, 0, rect.height(), pixelBuffer.data(), &b, DIB_RGB_COLORS);
-    ReleaseDC(window, hDC);
-    DeleteDC(hcDC);
+    GetDIBits(cdc, hBitmap, 0, rect.height(), pixelBuffer.data(), &b, DIB_RGB_COLORS);
     DeleteObject(hBitmap);
-    DeleteObject(hOld);
 
     return QImage(pixelBuffer.data(), rect.width(), rect.height(), (rect.width() * 3 + 3) & (~3), QImage::Format_RGB888).rgbSwapped().mirrored();
 }
 
-void MainWindow::scanConfigs()
+QString MainWindow::getConfigPath()
 {
-    ui->comboBox_Configs->clear();
-
-    QDir dir = QCoreApplication::applicationDirPath();
-    dir.cd(QStringLiteral("config"));
-
-    QStringList names = dir.entryList(QStringList(QStringLiteral("*.json")), QDir::Files).replaceInStrings(QRegularExpression(QStringLiteral("\\.json$")), QStringLiteral(""));
-    ui->comboBox_Configs->addItems(names);
-    loadConfig(ui->comboBox_Configs->currentText());
-}
-
-QString MainWindow::getConfigPath(const QString &name)
-{
-    return (QCoreApplication::applicationDirPath() + "/config/%1.json").arg(name);
+    return QCoreApplication::applicationDirPath() + "/config/config.json";
 }
 
 QString MainWindow::getScreenShotPath()
@@ -336,7 +366,7 @@ QString MainWindow::getScreenShotPath()
     return QCoreApplication::applicationDirPath() + "/screenshot/" + filename;
 }
 
-SConfigData MainWindow::readConfig(const QString & filename)
+SConfigData MainWindow::readConfig(const QString& filename)
 {
     QFile file;
     QJsonDocument doc;
@@ -357,7 +387,7 @@ SConfigData MainWindow::readConfig(const QString & filename)
     return jsonToConfig(doc.object());
 }
 
-void MainWindow::writeConfig(const QString & filename, const SConfigData &config)
+void MainWindow::writeConfig(const QString& filename, const SConfigData& config)
 {
     QFile file;
     QJsonObject root;
@@ -374,31 +404,19 @@ void MainWindow::writeConfig(const QString & filename, const SConfigData &config
     file.write(doc.toJson(QJsonDocument::Indented));
 }
 
-void MainWindow::loadConfig(const QString & name)
+void MainWindow::loadConfig()
 {
-    if (name.isEmpty())
-    {
-        applyDefaultConfigToUI();
-    }
-    else
-    {
-        applyConfigToUI(readConfig(getConfigPath(name)));
-    }
+    applyConfigToUI(readConfig(getConfigPath()));
 }
 
 void MainWindow::autoWriteConfig()
 {
-    if (!currentConfigName.isEmpty())
-    {
-        writeConfig(getConfigPath(currentConfigName), makeConfigFromUI());
-    }
+    writeConfig(getConfigPath(), makeConfigFromUI());
 }
 
 SConfigData MainWindow::makeConfigFromUI()
 {
     SConfigData result;
-
-    result.title = ui->lineEdit_WindowTitle->text();
 
     for (int index = 0; index < 10; ++index)
     {
@@ -415,18 +433,26 @@ SConfigData MainWindow::makeConfigFromUI()
     result.petPercent = ui->spinBox_MinPetResource->value();
     result.petKey = ui->comboBox_PetHealthKey->currentIndex();
 
+    result.md5 = playerNameMD5;
+    result.title = ui->lineEdit_WindowTitle->text();
+
+    auto rect = geometry();
+
+    result.x = rect.x();
+    result.y = rect.y();
+
     return result;
 }
 
-void MainWindow::applyConfigToUI(const SConfigData &config)
+void MainWindow::applyConfigToUI(const SConfigData& config)
 {
-    ui->lineEdit_WindowTitle->setText(config.title);
 
     for (int index = 0; index < 10; ++index)
     {
         enumerateControls[index].first->setChecked(config.fxSwitch[index]);
         enumerateControls[index].second->setValue(config.fxCD[index]);
     }
+
     ui->doubleSpinBox_FxInterval->setValue(config.fxInterval);
 
     ui->checkBox_AutoPlayerSupply->setChecked(config.playerSwitch);
@@ -436,6 +462,13 @@ void MainWindow::applyConfigToUI(const SConfigData &config)
     ui->checkBox_AutoPetSupply->setChecked(config.petSwitch);
     ui->spinBox_MinPetResource->setValue(config.petPercent);
     ui->comboBox_PetHealthKey->setCurrentIndex(config.petKey);
+
+    playerNameMD5 = config.md5;
+    ui->lineEdit_WindowTitle->setText(config.title);
+
+    auto rect = geometry();
+
+    setGeometry(config.x, config.y, rect.width(), rect.height());
 }
 
 void MainWindow::applyDefaultConfigToUI()
@@ -443,7 +476,7 @@ void MainWindow::applyDefaultConfigToUI()
     applyConfigToUI(SConfigData());
 }
 
-QJsonObject MainWindow::configToJson(const SConfigData &config)
+QJsonObject MainWindow::configToJson(const SConfigData& config)
 {
     QJsonObject result;
     QJsonArray pressArray;
@@ -458,7 +491,6 @@ QJsonObject MainWindow::configToJson(const SConfigData &config)
     }
     result[QStringLiteral("AutoPress")] = pressArray;
 
-    result["Title"] = config.title;
     result["Interval"] = config.fxInterval;
 
     result["PlayerSwitch"] = config.playerSwitch;
@@ -468,6 +500,9 @@ QJsonObject MainWindow::configToJson(const SConfigData &config)
     result["PetSwitch"] = config.petSwitch;
     result["PetPercent"] = config.petPercent;
     result["PetKey"] = config.petKey;
+
+    result["Title"] = config.title;
+    result["MD5"] = QString::fromUtf8(config.md5);
 
     return result;
 }
@@ -490,7 +525,6 @@ SConfigData MainWindow::jsonToConfig(QJsonObject json)
         }
     }
 
-    result.title = json.take("Title").toString("");
     result.fxInterval = json.take("Interval").toDouble(0.7);
 
     result.playerSwitch = json.take("PlayerSwitch").toBool(false);
@@ -501,29 +535,11 @@ SConfigData MainWindow::jsonToConfig(QJsonObject json)
     result.petPercent = json.take("PetPercent").toInt(50);
     result.petKey = json.take("PetKey").toInt(9);
 
+    result.title = json.take("Title").toString("");
+    result.md5 = json.take("MD5").toString("").toUtf8();
+
+
     return result;
-}
-
-void MainWindow::writeWindowPos()
-{
-    QSettings settings("CC", "FxPresser");
-
-    auto rect = geometry();
-
-    settings.setValue("X", rect.x());
-    settings.setValue("Y", rect.y());
-}
-
-void MainWindow::readWindowPos()
-{
-    QSettings settings("CC", "FxPresser");
-
-    auto rect = geometry();
-
-    int x = settings.value("X", 100).toInt();
-    int y = settings.value("Y", 100).toInt();
-
-    setGeometry(x, y, rect.width(), rect.height());
 }
 
 std::array<float, 3> MainWindow::rgb2HSV(QRgb rgbColor)
@@ -531,7 +547,7 @@ std::array<float, 3> MainWindow::rgb2HSV(QRgb rgbColor)
     std::array<float, 3> result;
 
     //opencv->color.cpp->RGB2HSV_f::operator()
-    float b = qBlue(rgbColor), g = qGreen(rgbColor), r = qRed(rgbColor);
+    int b = qBlue(rgbColor), g = qGreen(rgbColor), r = qRed(rgbColor);
     float h, s, v;
 
     float vmin, diff;
@@ -543,14 +559,14 @@ std::array<float, 3> MainWindow::rgb2HSV(QRgb rgbColor)
     if (vmin > b) vmin = b;
 
     diff = v - vmin;
-    s = diff / (float)(fabs(v) + FLT_EPSILON);
-    diff = (float)(60. / (diff + FLT_EPSILON));
+    s = diff / (fabs(v) + FLT_EPSILON);
+    diff = (float)(60.0f / (diff + FLT_EPSILON));
     if (v == r)
-        h = (g - b)*diff;
+        h = (g - b) * diff;
     else if (v == g)
-        h = (b - r)*diff + 120.f;
+        h = (b - r) * diff + 120.f;
     else
-        h = (r - g)*diff + 240.f;
+        h = (r - g) * diff + 240.f;
 
     if (h < 0) h += 360.f;
 
@@ -559,6 +575,16 @@ std::array<float, 3> MainWindow::rgb2HSV(QRgb rgbColor)
     result[2] = v;
 
     return result;
+}
+
+QByteArray MainWindow::imageHash(QImage image)
+{
+    QByteArray imageBytes;
+    QDataStream stream(&imageBytes, QIODevice::WriteOnly);
+
+    stream << image;
+
+    return QCryptographicHash::hash(imageBytes, QCryptographicHash::Md5);
 }
 
 bool MainWindow::isPixelPetLowResource(QRgb pixel)
@@ -575,9 +601,9 @@ bool MainWindow::isPixelPlayerLowHealth(QRgb pixel)
     auto fp_equal = [](float v1, float v2) {return fabs(v1 - v2) < 0.01f; };
 
     //绿/黄/红
-    //绿血: H126.67 S0.90  V170.00
-    //黄血:  H36.92 S0.87  V255.00
-    //红血:  H13.85 S1.00  V221.00
+    //绿血: H126.67  S0.90  V170.00
+    //黄血: H36.92   S0.87  V255.00
+    //红血: H13.85   S1.00  V221.00
 
     std::array<float, 3> hsvPix = rgb2HSV(pixel);
 
@@ -591,7 +617,7 @@ bool MainWindow::isPixelPlayerLowHealth(QRgb pixel)
         (fp_equal(hVal, 13.85f) && fp_equal(sVal, 1.00f)));
 }
 
-bool MainWindow::isPlayerLowHealth(QImage &sample, int precent)
+bool MainWindow::isPlayerLowHealth(QImage& sample, int precent)
 {
     DEFINE_IMAGE_ADAPTER(sample);
 
@@ -610,7 +636,7 @@ bool MainWindow::isPlayerLowHealth(QImage &sample, int precent)
     return result;
 }
 
-bool MainWindow::isPetLowResource(QImage &sample, int precent)
+bool MainWindow::isPetLowResource(QImage& sample, int precent)
 {
     DEFINE_IMAGE_ADAPTER(sample);
 
@@ -632,11 +658,11 @@ bool MainWindow::isPetLowResource(QImage &sample, int precent)
 
 void MainWindow::on_any_Fx_checkBox_toggled(bool checked)
 {
-    QObject *control = sender();
+    QObject* control = sender();
 
     auto index = std::find_if(enumerateControls.begin(), enumerateControls.end(),
-        [control](const std::pair<QCheckBox *, QDoubleSpinBox *> &p)
-    {return p.first == control; })
+        [control](const std::pair<QCheckBox*, QDoubleSpinBox*>& p)
+        {return p.first == control; })
         - enumerateControls.begin();
 
     enumerateControls[index].second->setEnabled(!checked);
@@ -657,77 +683,6 @@ void MainWindow::on_comboBox_GameWindows_currentIndexChanged(int index)
 
     applyBlankPixmapForPlayerHealth();
     applyBlankPixmapForPetResource();
-
-    if (index == -1)
-    {
-        applyBlankPixmapForPlayerName();
-    }
-    else
-    {
-        ui->label_PlayerName->setPixmap(playerNamePixmaps[index]);
-    }
-}
-
-void MainWindow::on_pushButton_SaveConfigAs_clicked()
-{
-    QString newName = QInputDialog::getText(this, QStringLiteral("另存为"), QStringLiteral("新的名字: "));
-
-    if (!newName.isEmpty())
-    {
-        writeConfig(getConfigPath(newName), makeConfigFromUI());
-
-        if (ui->comboBox_Configs->findText(newName, Qt::MatchFixedString) == -1)
-        {
-            ui->comboBox_Configs->addItem(newName);
-        }
-    }
-}
-
-void MainWindow::on_pushButton_RenameConfig_clicked()
-{
-    QString oldName = ui->comboBox_Configs->currentText();
-
-    if (!oldName.isEmpty())
-    {
-        QString newName = QInputDialog::getText(this, QStringLiteral("重命名"), QStringLiteral("新的名字: "));
-
-        if (!newName.isEmpty())
-        {
-            QFile::rename(getConfigPath(oldName), getConfigPath(newName));
-            ui->comboBox_Configs->setItemText(ui->comboBox_Configs->currentIndex(), newName);
-        }
-    }
-}
-
-void MainWindow::on_comboBox_Configs_currentIndexChanged(int index)
-{
-    autoWriteConfig();
-
-    ui->checkBox_Switch->setChecked(false);
-
-    if (index == -1)
-    {
-        applyDefaultConfigToUI();
-    }
-    else
-    {
-        QString name = ui->comboBox_Configs->itemText(index);
-        loadConfig(name);
-
-        currentConfigName = name;
-    }
-}
-
-void MainWindow::on_pushButton_DeleteConfig_clicked()
-{
-    QString name = ui->comboBox_Configs->currentText();
-
-    if (!name.isEmpty() && QMessageBox::question(this, QStringLiteral("删除"), QStringLiteral("是否真的要删除参数 '%1' ？").arg(name), QStringLiteral("确定"), QStringLiteral("取消")) == 0)
-    {
-        QFile::remove(getConfigPath(name));
-        currentConfigName.clear();
-        ui->comboBox_Configs->removeItem(ui->comboBox_Configs->currentIndex());
-    }
 }
 
 void MainWindow::on_pushButton_ChangeWindowTitle_clicked()
@@ -781,13 +736,6 @@ void MainWindow::on_checkBox_AutoPetSupply_toggled(bool checked)
     {
         applyBlankPixmapForPetResource();
     }
-}
-
-void MainWindow::applyBlankPixmapForPlayerName()
-{
-    QPixmap playerNamePixmap(playerNameRect.size());
-    playerNamePixmap.fill(Qt::gray);
-    ui->label_PlayerName->setPixmap(playerNamePixmap);
 }
 
 void MainWindow::applyBlankPixmapForPlayerHealth()
@@ -860,7 +808,7 @@ void MainWindow::on_pushButton_ScreenShot_clicked()
 
     RECT clientRect;
     GetClientRect(gameWindows[window_index], &clientRect);
-    QImage image = getGamePicture(gameWindows[window_index], QRect(0, 0, clientRect.right, clientRect.bottom));
+    QImage image = getGamePicture(QRect(0, 0, clientRect.right, clientRect.bottom));
 
     if (!image.isNull())
     {

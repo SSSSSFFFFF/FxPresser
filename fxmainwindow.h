@@ -65,7 +65,7 @@ struct SConfigData
     int petKey; //宠物补给按键
 
     QString title; //游戏窗口标题
-    QByteArray md5; //角色名图片md5
+    QByteArray hash; //角色名图片hash
 
     int x, y; //程序位置
 
@@ -82,16 +82,19 @@ struct SConfigData
         petSwitch = false;
         petPercent = 50;
         petKey = 0;
+
+        x = -1;
+        y = -1;
     }
 };
 
-class MainWindow : public QMainWindow
+class FxMainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget* parent = nullptr);
-    ~MainWindow();
+    FxMainWindow(QWidget* parent = nullptr);
+    ~FxMainWindow();
 
 private slots:
     void on_pushButton_UpdateGameWindows_clicked();
@@ -109,10 +112,6 @@ private slots:
     void on_checkBox_AutoPlayerHealth_toggled(bool checked);
 
     void on_checkBox_AutoPetSupply_toggled(bool checked);
-
-    void on_pushButton_ScreenShot_clicked();
-
-    void on_pushButton_OpenScreenShotFolder_clicked();
 
 private:
     Ui::MainWindow* ui;
@@ -155,15 +154,18 @@ private:
     //上次吃宝宝糖果的时间点
     std::chrono::steady_clock::time_point lastPetSupplyTimer;
 
-    //当前游戏窗口句柄，DC之类的
+    //扫描到的游戏窗口数据
     QVector<HWND> gameWindows;
+    QVector<QImage> playerNameImages;
+    QVector<QByteArray> playerNameHashes;
+
+    //当前游戏窗口的数据
     HWND gameWindow;
     HDC dc, cdc;
-    QByteArray playerNameMD5;
-    QVector<QImage> playerNameImages;
+    QByteArray playerNameHash;
 
-    //在启动的时候运行一次，根据保存的MD5查找对应游戏窗口并设置窗口标题
-    void selectGameWindow(const QByteArray& md5);
+    //在启动的时候运行一次，根据保存的hash查找对应游戏窗口并设置窗口标题
+    void autoSelectAndRenameGameWindow(const QByteArray& hash);
 
     void initGDI(HWND window);
     void clearGDI();
@@ -187,7 +189,6 @@ private:
 
     //计算?配置文件的路径
     QString getConfigPath();
-    QString getScreenShotPath();
 
     //读取配置文件
     SConfigData readConfig(const QString& filename);

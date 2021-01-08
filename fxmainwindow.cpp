@@ -1,5 +1,5 @@
-﻿#include "mainwindow.h"
-#include "ui_mainwindow.h"
+﻿#include "fxmainwindow.h"
+#include "ui_fxmainwindow.h"
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
@@ -9,8 +9,6 @@
 #include <QStyledItemDelegate>
 #include <QPainter>
 #include <QSettings>
-#include <QDateTime>
-#include <QDesktopServices>
 #include <QCryptographicHash>
 #include <QUrl>
 #include <Psapi.h>
@@ -39,7 +37,7 @@ public:
     }
 };
 
-MainWindow::MainWindow(QWidget* parent)
+FxMainWindow::FxMainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
@@ -49,8 +47,6 @@ MainWindow::MainWindow(QWidget* parent)
 
     ui->setupUi(this);
     ui->comboBox_GameWindows->setItemDelegate(new CharacterBoxDelegate);
-
-    setFixedSize(width(), height());
 
     applyBlankPixmapForPlayerHealth();
     applyBlankPixmapForPetResource();
@@ -63,14 +59,13 @@ MainWindow::MainWindow(QWidget* parent)
         enumerateControls[index].first = checkBox;
         enumerateControls[index].second = spinBox;
 
-        connect(checkBox, &QCheckBox::toggled, this, &MainWindow::on_any_Fx_checkBox_toggled);
+        connect(checkBox, &QCheckBox::toggled, this, &FxMainWindow::on_any_Fx_checkBox_toggled);
     }
 
-    connect(&pressTimer, &QTimer::timeout, this, &MainWindow::pressProc);
-    connect(&supplyTimer, &QTimer::timeout, this, &MainWindow::supplyProc);
+    connect(&pressTimer, &QTimer::timeout, this, &FxMainWindow::pressProc);
+    connect(&supplyTimer, &QTimer::timeout, this, &FxMainWindow::supplyProc);
 
     QDir dir = QCoreApplication::applicationDirPath();
-    dir.mkdir(QStringLiteral("screenshot"));
     dir.mkdir(QStringLiteral("config"));
 
     //读取参数
@@ -80,19 +75,7 @@ MainWindow::MainWindow(QWidget* parent)
     scanGameWindows();
 
     //首次自动选择游戏窗口
-    selectGameWindow(playerNameMD5);
-
-    //-----------------------------------------------------------------------------------------------------------
-    //抄的代码..获取读进程信息的权限
-    HANDLE hToken;
-    TOKEN_PRIVILEGES tp;
-    OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken);
-    tp.PrivilegeCount = 1;
-    LookupPrivilegeValueW(nullptr, SE_DEBUG_NAME, &tp.Privileges[0].Luid);
-    tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-    AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(tp), nullptr, nullptr);
-    CloseHandle(hToken);
-    //-----------------------------------------------------------------------------------------------------------
+    autoSelectAndRenameGameWindow(playerNameHash);
 
     pressTimer.setTimerType(Qt::PreciseTimer);
     pressTimer.start(50);
@@ -101,7 +84,7 @@ MainWindow::MainWindow(QWidget* parent)
     supplyTimer.start(1000);
 }
 
-MainWindow::~MainWindow()
+FxMainWindow::~FxMainWindow()
 {
     pressTimer.stop();
     supplyTimer.stop();
@@ -112,36 +95,51 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_pushButton_UpdateGameWindows_clicked()
+void FxMainWindow::on_pushButton_UpdateGameWindows_clicked()
 {
     scanGameWindows();
+
+    if (!gameWindows.isEmpty())
+        ui->comboBox_GameWindows->setCurrentIndex(0);
 }
 
-void MainWindow::selectGameWindow(const QByteArray& md5)
+void FxMainWindow::autoSelectAndRenameGameWindow(const QByteArray& hash)
 {
-    int index;
+    int index = -1;
+    bool found = false;
 
-    if (md5.isEmpty() || playerNameImages.isEmpty())
+    if (!gameWindows.isEmpty())
     {
-        index = gameWindows.size() - 1;
-    }
-    else
-    {
-        for (int image_index = 0; image_index < playerNameImages.size(); ++image_index)
+        index = 0;
+
+        if (!hash.isEmpty())
         {
-            if (imageHash(playerNameImages[image_index]) == md5)
+            for (int hash_index = 0; hash_index < playerNameImages.size(); ++hash_index)
             {
-                index = image_index;
-                break;
+                if (playerNameHashes[hash_index] == hash)
+                {
+                    index = hash_index;
+                    found = true;
+                    break;
+                }
             }
         }
     }
 
     ui->comboBox_GameWindows->setCurrentIndex(index);
+
+    //找到窗口之后自动更改窗口标题
+    if (found)
+    {
+        on_pushButton_ChangeWindowTitle_clicked();
+    }
 }
 
-void MainWindow::initGDI(HWND window)
+void FxMainWindow::initGDI(HWND window)
 {
+    if (window == gameWindow)
+        return;
+
     clearGDI();
 
     gameWindow = window;
@@ -149,13 +147,20 @@ void MainWindow::initGDI(HWND window)
     cdc = CreateCompatibleDC(dc);
 }
 
-void MainWindow::clearGDI()
+void FxMainWindow::clearGDI()
 {
-    DeleteDC(cdc);
-    ReleaseDC(gameWindow, dc);
+    if (cdc != nullptr)
+        DeleteDC(cdc);
+
+    if (gameWindow != nullptr && dc != nullptr)
+        ReleaseDC(gameWindow, dc);
+
+    gameWindow = nullptr;
+    dc = nullptr;
+    cdc = nullptr;
 }
 
-void MainWindow::pressProc()
+void FxMainWindow::pressProc()
 {
     if (!ui->checkBox_Switch->isChecked())
     {
@@ -193,7 +198,7 @@ void MainWindow::pressProc()
     }
 }
 
-void MainWindow::supplyProc()
+void FxMainWindow::supplyProc()
 {
     if (!ui->checkBox_Switch->isChecked())
     {
@@ -242,64 +247,63 @@ void MainWindow::supplyProc()
     }
 }
 
-void MainWindow::resetTimeStamp(int index)
+void FxMainWindow::resetTimeStamp(int index)
 {
     lastPressedTimePoint[index] = std::chrono::steady_clock::now();
 }
 
-void MainWindow::resetAllTimeStamps()
+void FxMainWindow::resetAllTimeStamps()
 {
     lastPressedTimePoint.fill(std::chrono::steady_clock::now());
     lastAnyPressedTimePoint = std::chrono::steady_clock::time_point();
 }
 
-void MainWindow::scanGameWindows()
+void FxMainWindow::scanGameWindows()
 {
     wchar_t c_string[512];
 
     int found = 0, invalid = 0;
 
     gameWindows.clear();
+    playerNameImages.clear();
+    playerNameHashes.clear();
     ui->comboBox_GameWindows->clear();
     ui->checkBox_Switch->setChecked(false);
 
-    HWND hWindow = FindWindow(nullptr, nullptr);
+    HWND hWindow = FindWindowW(L"QQSwordWinClass", nullptr);
+
+    ui->comboBox_GameWindows->blockSignals(true);
 
     while (hWindow != nullptr)
     {
         GetWindowTextW(hWindow, c_string, 512);
 
-        if (QString::fromWCharArray(c_string).startsWith(QStringLiteral("QQ自由幻想"))) //此处必须判断标题，qqffo.exe有很多窗口
+        if (QString::fromWCharArray(c_string).startsWith(QStringLiteral("QQ自由幻想")))
         {
-            DWORD pid;
-            GetWindowThreadProcessId(hWindow, &pid);
-            HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid);
-            GetProcessImageFileNameW(hProcess, c_string, 512);
-            CloseHandle(hProcess);
+            initGDI(hWindow);
+            QImage playerNameImage = getGamePicture(playerNameRect);
+            clearGDI();
 
-            if (QString::fromWCharArray(c_string).endsWith(QStringLiteral("\\qqffo.exe")))
+            DEFINE_IMAGE_ADAPTER(playerNameImage);
+
+            if (!playerNameImage.isNull())
             {
-                initGDI(hWindow);
-                QImage playerNameImage = getGamePicture(playerNameRect);
-
-                if (!playerNameImage.isNull())
-                {
-                    ++found;
-                    gameWindows.push_back(hWindow);
-                    playerNameImages.push_back(playerNameImage);
-                    ui->comboBox_GameWindows->addItem(QIcon(QPixmap::fromImage(playerNameImage)), nullptr);
-                }
-                else
-                {
-                    ++invalid;
-                }
+                ++found;
+                gameWindows.push_back(hWindow);
+                playerNameHashes.push_back(imageHash(playerNameImage));
+                playerNameImages.push_back(playerNameImage);
+                ui->comboBox_GameWindows->addItem(QIcon(QPixmap::fromImage(playerNameImage)), nullptr);
+            }
+            else
+            {
+                ++invalid;
             }
         }
 
-        hWindow = FindWindowEx(nullptr, hWindow, nullptr, nullptr);
+        hWindow = FindWindowExW(nullptr, hWindow, L"QQSwordWinClass", nullptr);
     }
 
-    clearGDI();
+    ui->comboBox_GameWindows->blockSignals(false);
 
     if (found + invalid == 0)
     {
@@ -312,13 +316,13 @@ void MainWindow::scanGameWindows()
     }
 }
 
-void MainWindow::pressKey(HWND window, UINT code)
+void FxMainWindow::pressKey(HWND window, UINT code)
 {
     PostMessageA(window, WM_KEYDOWN, code, 0);
     PostMessageA(window, WM_KEYUP, code, 0);
 }
 
-QImage MainWindow::getGamePicture(QRect rect)
+QImage FxMainWindow::getGamePicture(QRect rect)
 {
     std::vector<uchar> pixelBuffer;
     QImage result;
@@ -355,18 +359,16 @@ QImage MainWindow::getGamePicture(QRect rect)
     return QImage(pixelBuffer.data(), rect.width(), rect.height(), (rect.width() * 3 + 3) & (~3), QImage::Format_RGB888).rgbSwapped().mirrored();
 }
 
-QString MainWindow::getConfigPath()
+QString FxMainWindow::getConfigPath()
 {
-    return QCoreApplication::applicationDirPath() + "/config/config.json";
+    //exe目录/config/exe文件名.json
+    auto dirp = QCoreApplication::applicationDirPath();
+    auto exep = QCoreApplication::applicationFilePath();
+
+    return (dirp + "/config/%1.json").arg(exep.mid(dirp.length() + 1, exep.length() - dirp.length() - 5));
 }
 
-QString MainWindow::getScreenShotPath()
-{
-    QString filename = QDateTime::currentDateTime().toString("yyyy-MM-dd HH-mm-ss-zzz.png");
-    return QCoreApplication::applicationDirPath() + "/screenshot/" + filename;
-}
-
-SConfigData MainWindow::readConfig(const QString& filename)
+SConfigData FxMainWindow::readConfig(const QString& filename)
 {
     QFile file;
     QJsonDocument doc;
@@ -387,7 +389,7 @@ SConfigData MainWindow::readConfig(const QString& filename)
     return jsonToConfig(doc.object());
 }
 
-void MainWindow::writeConfig(const QString& filename, const SConfigData& config)
+void FxMainWindow::writeConfig(const QString& filename, const SConfigData& config)
 {
     QFile file;
     QJsonObject root;
@@ -404,17 +406,17 @@ void MainWindow::writeConfig(const QString& filename, const SConfigData& config)
     file.write(doc.toJson(QJsonDocument::Indented));
 }
 
-void MainWindow::loadConfig()
+void FxMainWindow::loadConfig()
 {
     applyConfigToUI(readConfig(getConfigPath()));
 }
 
-void MainWindow::autoWriteConfig()
+void FxMainWindow::autoWriteConfig()
 {
     writeConfig(getConfigPath(), makeConfigFromUI());
 }
 
-SConfigData MainWindow::makeConfigFromUI()
+SConfigData FxMainWindow::makeConfigFromUI()
 {
     SConfigData result;
 
@@ -433,7 +435,7 @@ SConfigData MainWindow::makeConfigFromUI()
     result.petPercent = ui->spinBox_MinPetResource->value();
     result.petKey = ui->comboBox_PetHealthKey->currentIndex();
 
-    result.md5 = playerNameMD5;
+    result.hash = playerNameHash;
     result.title = ui->lineEdit_WindowTitle->text();
 
     auto rect = geometry();
@@ -444,9 +446,8 @@ SConfigData MainWindow::makeConfigFromUI()
     return result;
 }
 
-void MainWindow::applyConfigToUI(const SConfigData& config)
+void FxMainWindow::applyConfigToUI(const SConfigData& config)
 {
-
     for (int index = 0; index < 10; ++index)
     {
         enumerateControls[index].first->setChecked(config.fxSwitch[index]);
@@ -463,20 +464,23 @@ void MainWindow::applyConfigToUI(const SConfigData& config)
     ui->spinBox_MinPetResource->setValue(config.petPercent);
     ui->comboBox_PetHealthKey->setCurrentIndex(config.petKey);
 
-    playerNameMD5 = config.md5;
+    playerNameHash = config.hash;
     ui->lineEdit_WindowTitle->setText(config.title);
 
     auto rect = geometry();
 
-    setGeometry(config.x, config.y, rect.width(), rect.height());
+    if (config.x != -1 && config.y != -1)
+    {
+        setGeometry(config.x, config.y, rect.width(), rect.height());
+    }
 }
 
-void MainWindow::applyDefaultConfigToUI()
+void FxMainWindow::applyDefaultConfigToUI()
 {
     applyConfigToUI(SConfigData());
 }
 
-QJsonObject MainWindow::configToJson(const SConfigData& config)
+QJsonObject FxMainWindow::configToJson(const SConfigData& config)
 {
     QJsonObject result;
     QJsonArray pressArray;
@@ -501,13 +505,16 @@ QJsonObject MainWindow::configToJson(const SConfigData& config)
     result["PetPercent"] = config.petPercent;
     result["PetKey"] = config.petKey;
 
+    result["X"] = config.x;
+    result["Y"] = config.y;
+
     result["Title"] = config.title;
-    result["MD5"] = QString::fromUtf8(config.md5);
+    result["Hash"] = QString::fromUtf8(config.hash);
 
     return result;
 }
 
-SConfigData MainWindow::jsonToConfig(QJsonObject json)
+SConfigData FxMainWindow::jsonToConfig(QJsonObject json)
 {
     SConfigData result;
     QJsonArray pressArray;
@@ -535,14 +542,16 @@ SConfigData MainWindow::jsonToConfig(QJsonObject json)
     result.petPercent = json.take("PetPercent").toInt(50);
     result.petKey = json.take("PetKey").toInt(9);
 
-    result.title = json.take("Title").toString("");
-    result.md5 = json.take("MD5").toString("").toUtf8();
+    result.x = json.take("X").toInt(-1);
+    result.y = json.take("Y").toInt(-1);
 
+    result.title = json.take("Title").toString("");
+    result.hash = json.take("Hash").toString("").toUtf8();
 
     return result;
 }
 
-std::array<float, 3> MainWindow::rgb2HSV(QRgb rgbColor)
+std::array<float, 3> FxMainWindow::rgb2HSV(QRgb rgbColor)
 {
     std::array<float, 3> result;
 
@@ -577,17 +586,20 @@ std::array<float, 3> MainWindow::rgb2HSV(QRgb rgbColor)
     return result;
 }
 
-QByteArray MainWindow::imageHash(QImage image)
+QByteArray FxMainWindow::imageHash(QImage image)
 {
+    if (image.isNull() || image.format() != QImage::Format_RGB888)
+        return QByteArray();
+
     QByteArray imageBytes;
     QDataStream stream(&imageBytes, QIODevice::WriteOnly);
 
     stream << image;
 
-    return QCryptographicHash::hash(imageBytes, QCryptographicHash::Md5);
+    return QCryptographicHash::hash(imageBytes, QCryptographicHash::Md5).toBase64();
 }
 
-bool MainWindow::isPixelPetLowResource(QRgb pixel)
+bool FxMainWindow::isPixelPetLowResource(QRgb pixel)
 {
     std::array<float, 3> normalized = normalizePixel(pixel);
 
@@ -596,7 +608,7 @@ bool MainWindow::isPixelPetLowResource(QRgb pixel)
     return std::count_if(normalized.begin(), normalized.end(), [](float val) {return val > 0.4f; }) == 0;
 }
 
-bool MainWindow::isPixelPlayerLowHealth(QRgb pixel)
+bool FxMainWindow::isPixelPlayerLowHealth(QRgb pixel)
 {
     auto fp_equal = [](float v1, float v2) {return fabs(v1 - v2) < 0.01f; };
 
@@ -617,7 +629,7 @@ bool MainWindow::isPixelPlayerLowHealth(QRgb pixel)
         (fp_equal(hVal, 13.85f) && fp_equal(sVal, 1.00f)));
 }
 
-bool MainWindow::isPlayerLowHealth(QImage& sample, int precent)
+bool FxMainWindow::isPlayerLowHealth(QImage& sample, int precent)
 {
     DEFINE_IMAGE_ADAPTER(sample);
 
@@ -636,7 +648,7 @@ bool MainWindow::isPlayerLowHealth(QImage& sample, int precent)
     return result;
 }
 
-bool MainWindow::isPetLowResource(QImage& sample, int precent)
+bool FxMainWindow::isPetLowResource(QImage& sample, int precent)
 {
     DEFINE_IMAGE_ADAPTER(sample);
 
@@ -656,7 +668,7 @@ bool MainWindow::isPetLowResource(QImage& sample, int precent)
     return result;
 }
 
-void MainWindow::on_any_Fx_checkBox_toggled(bool checked)
+void FxMainWindow::on_any_Fx_checkBox_toggled(bool checked)
 {
     QObject* control = sender();
 
@@ -669,7 +681,7 @@ void MainWindow::on_any_Fx_checkBox_toggled(bool checked)
     resetTimeStamp(index);
 }
 
-void MainWindow::on_checkBox_Switch_toggled(bool checked)
+void FxMainWindow::on_checkBox_Switch_toggled(bool checked)
 {
     if (checked)
     {
@@ -677,15 +689,26 @@ void MainWindow::on_checkBox_Switch_toggled(bool checked)
     }
 }
 
-void MainWindow::on_comboBox_GameWindows_currentIndexChanged(int index)
+void FxMainWindow::on_comboBox_GameWindows_currentIndexChanged(int index)
 {
     ui->checkBox_Switch->setChecked(false);
 
     applyBlankPixmapForPlayerHealth();
     applyBlankPixmapForPetResource();
+
+    if (index == -1)
+    {
+        clearGDI();
+        playerNameHash.clear();
+    }
+    else
+    {
+        initGDI(gameWindows[index]);
+        playerNameHash = playerNameHashes[index];
+    }
 }
 
-void MainWindow::on_pushButton_ChangeWindowTitle_clicked()
+void FxMainWindow::on_pushButton_ChangeWindowTitle_clicked()
 {
     int window_index = ui->comboBox_GameWindows->currentIndex();
 
@@ -696,15 +719,13 @@ void MainWindow::on_pushButton_ChangeWindowTitle_clicked()
 
     QString text = ui->lineEdit_WindowTitle->text();
 
-    if (text.isEmpty())
+    if (!text.isEmpty())
     {
-        return;
+        SetWindowTextW(gameWindows[window_index], QStringLiteral("QQ自由幻想 - %1").arg(text).toStdWString().c_str());
     }
-
-    SetWindowTextW(gameWindows[window_index], QStringLiteral("QQ自由幻想 - %1").arg(text).toStdWString().c_str());
 }
 
-void MainWindow::on_pushButton_SetForeground_clicked()
+void FxMainWindow::on_pushButton_SetForeground_clicked()
 {
     int window_index = ui->comboBox_GameWindows->currentIndex();
 
@@ -716,7 +737,7 @@ void MainWindow::on_pushButton_SetForeground_clicked()
     SetForegroundWindow(gameWindows[window_index]);
 }
 
-void MainWindow::on_checkBox_AutoPlayerHealth_toggled(bool checked)
+void FxMainWindow::on_checkBox_AutoPlayerHealth_toggled(bool checked)
 {
     ui->spinBox_MinPlayerHealth->setEnabled(!checked);
     ui->comboBox_PlayerHealthKey->setEnabled(!checked);
@@ -727,7 +748,7 @@ void MainWindow::on_checkBox_AutoPlayerHealth_toggled(bool checked)
     }
 }
 
-void MainWindow::on_checkBox_AutoPetSupply_toggled(bool checked)
+void FxMainWindow::on_checkBox_AutoPetSupply_toggled(bool checked)
 {
     ui->spinBox_MinPetResource->setEnabled(!checked);
     ui->comboBox_PetHealthKey->setEnabled(!checked);
@@ -738,21 +759,21 @@ void MainWindow::on_checkBox_AutoPetSupply_toggled(bool checked)
     }
 }
 
-void MainWindow::applyBlankPixmapForPlayerHealth()
+void FxMainWindow::applyBlankPixmapForPlayerHealth()
 {
     QPixmap playerHealthPixmap(playerHealthRect.size() * 2);
     playerHealthPixmap.fill(Qt::gray);
     ui->label_PlayerHealth->setPixmap(playerHealthPixmap);
 }
 
-void MainWindow::applyBlankPixmapForPetResource()
+void FxMainWindow::applyBlankPixmapForPetResource()
 {
     QPixmap petResourcePixmap(petResourceRect.size() * 2);
     petResourcePixmap.fill(Qt::gray);
     ui->label_PetResource->setPixmap(petResourcePixmap);
 }
 
-QPoint MainWindow::getPlayerHealthSamplePoint(QImage image, int percent)
+QPoint FxMainWindow::getPlayerHealthSamplePoint(QImage image, int percent)
 {
     if (image.isNull() || image.size() != playerHealthRect.size())
     {
@@ -764,7 +785,7 @@ QPoint MainWindow::getPlayerHealthSamplePoint(QImage image, int percent)
         playerHealthRect.height() / 2);
 }
 
-QPair<QPoint, QPoint> MainWindow::getPetResourceSamplePoints(QImage image, int percent)
+QPair<QPoint, QPoint> FxMainWindow::getPetResourceSamplePoints(QImage image, int percent)
 {
     //从x求y
     static const int pet_mana_y_table[16] =
@@ -787,7 +808,7 @@ QPair<QPoint, QPoint> MainWindow::getPetResourceSamplePoints(QImage image, int p
     return qMakePair(healthPoint, manaPoint);
 }
 
-std::array<float, 3> MainWindow::normalizePixel(QRgb pixel)
+std::array<float, 3> FxMainWindow::normalizePixel(QRgb pixel)
 {
     float fRed = static_cast<float>(qRed(pixel));
     float fGreen = static_cast<float>(qGreen(pixel));
@@ -795,28 +816,4 @@ std::array<float, 3> MainWindow::normalizePixel(QRgb pixel)
     float sum = fRed + fGreen + fBlue;
 
     return std::array<float, 3>{fRed / sum, fGreen / sum, fBlue / sum};
-}
-
-void MainWindow::on_pushButton_ScreenShot_clicked()
-{
-    int window_index = ui->comboBox_GameWindows->currentIndex();
-
-    if (window_index == -1)
-    {
-        return;
-    }
-
-    RECT clientRect;
-    GetClientRect(gameWindows[window_index], &clientRect);
-    QImage image = getGamePicture(QRect(0, 0, clientRect.right, clientRect.bottom));
-
-    if (!image.isNull())
-    {
-        image.save(getScreenShotPath());
-    }
-}
-
-void MainWindow::on_pushButton_OpenScreenShotFolder_clicked()
-{
-    QDesktopServices::openUrl(QUrl(QCoreApplication::applicationDirPath() + "/screenshot", QUrl::TolerantMode));
 }

@@ -19,13 +19,13 @@ LIBS += gdi32.lib
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    fxmainwindow.cpp
 
 HEADERS += \
-    mainwindow.h
+    fxmainwindow.h
 
 FORMS += \
-    mainwindow.ui
+    fxmainwindow.ui
 
 RC_ICONS = icon.ico
 

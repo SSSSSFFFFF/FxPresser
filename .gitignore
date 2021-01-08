@@ -249,3 +249,4 @@ ModelManifest.xml
 /Makefile
 /Makefile.Debug
 /Makefile.Release
+/ui_fxmainwindow.h

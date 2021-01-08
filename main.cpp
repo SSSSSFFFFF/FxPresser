@@ -1,11 +1,12 @@
-#include "mainwindow.h"
+#include "FxMainWindow.h"
 
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    MainWindow w;
+    FxMainWindow w;
+
     w.show();
     return a.exec();
 }

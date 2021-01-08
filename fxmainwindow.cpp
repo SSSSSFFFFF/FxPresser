@@ -104,8 +104,6 @@ void FxMainWindow::autoSelectAndRenameGameWindow(const QByteArray& hash)
 
     if (!gameWindows.isEmpty())
     {
-        index = 0;
-
         if (!hash.isEmpty())
         {
             for (int hash_index = 0; hash_index < playerNameImages.size(); ++hash_index)

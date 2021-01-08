@@ -5,7 +5,6 @@
 #include <QVector>
 #include <QTimer>
 #include <QImage>
-#include <QPair>
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QLabel>
@@ -19,7 +18,6 @@
 
 #include <array>
 #include <utility>
-#include <tuple>
 #include <chrono>
 
 QT_BEGIN_NAMESPACE

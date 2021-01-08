@@ -3,16 +3,10 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
-#include <QInputDialog>
 #include <QMessageBox>
-#include <QDebug>
 #include <QStyledItemDelegate>
 #include <QPainter>
-#include <QSettings>
 #include <QCryptographicHash>
-#include <QUrl>
-#include <Psapi.h>
-#pragma comment(lib, "psapi.lib")
 
 //角色名取样区域
 static const QRect playerNameRect{ 80,22,90,14 };

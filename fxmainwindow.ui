@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>201</width>
-    <height>657</height>
+    <height>666</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -810,6 +810,13 @@
        </layout>
       </item>
      </layout>
+    </item>
+    <item>
+     <widget class="Line" name="line">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
     </item>
     <item>
      <layout class="QVBoxLayout" name="verticalLayout_6">

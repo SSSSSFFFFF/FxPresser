@@ -107,7 +107,7 @@ private slots:
 
     void on_pushButton_SetForeground_clicked();
 
-    void on_checkBox_AutoPlayerHealth_toggled(bool checked);
+    void on_checkBox_AutoPlayerSupply_toggled(bool checked);
 
     void on_checkBox_AutoPetSupply_toggled(bool checked);
 
@@ -158,9 +158,9 @@ private:
     QVector<QByteArray> playerNameHashes;
 
     //当前游戏窗口的数据
-    HWND gameWindow;
-    HDC dc, cdc;
-    QByteArray playerNameHash;
+    HWND currentGameWindow;
+    HDC currentDC, currentCDC;
+    QByteArray currentHash;
 
     //在启动的时候运行一次，根据保存的hash查找对应游戏窗口并设置窗口标题
     void autoSelectAndRenameGameWindow(const QByteArray& hash);

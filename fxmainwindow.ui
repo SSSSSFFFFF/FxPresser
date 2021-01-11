@@ -6,27 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>207</width>
-    <height>637</height>
+    <width>201</width>
+    <height>657</height>
    </rect>
-  </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-    <horstretch>0</horstretch>
-    <verstretch>0</verstretch>
-   </sizepolicy>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>207</width>
-    <height>637</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>207</width>
-    <height>637</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>FxPresser</string>
@@ -93,12 +75,6 @@
     </item>
     <item>
      <widget class="Line" name="line_4">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -109,6 +85,60 @@
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_16">
+      <item>
+       <spacer name="horizontalSpacer_16">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBox_Switch">
+        <property name="font">
+         <font>
+          <family>Microsoft YaHei</family>
+          <pointsize>20</pointsize>
+          <weight>75</weight>
+          <italic>false</italic>
+          <bold>true</bold>
+          <strikeout>false</strikeout>
+          <kerning>true</kerning>
+         </font>
+        </property>
+        <property name="text">
+         <string>全局开关</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_12">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_11">
@@ -160,50 +190,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_16">
-      <item>
-       <spacer name="horizontalSpacer_16">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="checkBox_Switch">
-        <property name="text">
-         <string>全局开关</string>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-        <property name="tristate">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_12">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,1">
       <item>
        <widget class="QCheckBox" name="checkBox_F1">
         <property name="text">
@@ -249,7 +236,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,1">
       <item>
        <widget class="QCheckBox" name="checkBox_F2">
         <property name="text">
@@ -295,7 +282,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,0,1">
       <item>
        <widget class="QCheckBox" name="checkBox_F3">
         <property name="text">
@@ -341,7 +328,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0,1">
       <item>
        <widget class="QCheckBox" name="checkBox_F4">
         <property name="text">
@@ -387,7 +374,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,1">
       <item>
        <widget class="QCheckBox" name="checkBox_F5">
         <property name="text">
@@ -433,7 +420,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0,1">
       <item>
        <widget class="QCheckBox" name="checkBox_F6">
         <property name="text">
@@ -479,7 +466,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0,1">
       <item>
        <widget class="QCheckBox" name="checkBox_F7">
         <property name="text">
@@ -525,7 +512,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0,0,1">
       <item>
        <widget class="QCheckBox" name="checkBox_F8">
         <property name="text">
@@ -571,7 +558,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="0,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="0,0,1">
       <item>
        <widget class="QCheckBox" name="checkBox_F9">
         <property name="text">
@@ -617,7 +604,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="0,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="0,0,1">
       <item>
        <widget class="QCheckBox" name="checkBox_F10">
         <property name="text">

@@ -35,12 +35,13 @@ FxMainWindow::FxMainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
-    gameWindow = nullptr;
-    dc = nullptr;
-    cdc = nullptr;
+    currentGameWindow = nullptr;
+    currentDC = nullptr;
+    currentCDC = nullptr;
 
     ui->setupUi(this);
     ui->comboBox_GameWindows->setItemDelegate(new CharacterBoxDelegate);
+    setFixedSize(width(), height());
 
     applyBlankPixmapForPlayerHealth();
     applyBlankPixmapForPetResource();
@@ -65,11 +66,11 @@ FxMainWindow::FxMainWindow(QWidget* parent)
     //读取参数
     loadConfig();
 
-    //首次扫描游戏窗口
+    //扫描游戏窗口
     scanGameWindows();
 
     //首次自动选择游戏窗口
-    autoSelectAndRenameGameWindow(playerNameHash);
+    autoSelectAndRenameGameWindow(currentHash);
 
     pressTimer.setTimerType(Qt::PreciseTimer);
     pressTimer.start(50);
@@ -94,13 +95,12 @@ void FxMainWindow::on_pushButton_UpdateGameWindows_clicked()
     scanGameWindows();
 
     if (!gameWindows.isEmpty())
-        ui->comboBox_GameWindows->setCurrentIndex(0);
+        autoSelectAndRenameGameWindow(currentHash);
 }
 
 void FxMainWindow::autoSelectAndRenameGameWindow(const QByteArray& hash)
 {
     int index = -1;
-    bool found = false;
 
     if (!gameWindows.isEmpty())
     {
@@ -111,7 +111,6 @@ void FxMainWindow::autoSelectAndRenameGameWindow(const QByteArray& hash)
                 if (playerNameHashes[hash_index] == hash)
                 {
                     index = hash_index;
-                    found = true;
                     break;
                 }
             }
@@ -121,35 +120,40 @@ void FxMainWindow::autoSelectAndRenameGameWindow(const QByteArray& hash)
     ui->comboBox_GameWindows->setCurrentIndex(index);
 
     //找到窗口之后自动更改窗口标题
-    if (found)
+    if (index != -1)
     {
+        initGDI(gameWindows[index]);
         on_pushButton_ChangeWindowTitle_clicked();
+    }
+    else
+    {
+        clearGDI();
     }
 }
 
 void FxMainWindow::initGDI(HWND window)
 {
-    if (window == gameWindow)
+    if (window == currentGameWindow)
         return;
 
     clearGDI();
 
-    gameWindow = window;
-    dc = GetDC(window);
-    cdc = CreateCompatibleDC(dc);
+    currentGameWindow = window;
+    currentDC = GetDC(window);
+    currentCDC = CreateCompatibleDC(currentDC);
 }
 
 void FxMainWindow::clearGDI()
 {
-    if (cdc != nullptr)
-        DeleteDC(cdc);
+    if (currentCDC != nullptr)
+        DeleteDC(currentCDC);
 
-    if (gameWindow != nullptr && dc != nullptr)
-        ReleaseDC(gameWindow, dc);
+    if (currentGameWindow != nullptr && currentDC != nullptr)
+        ReleaseDC(currentGameWindow, currentDC);
 
-    gameWindow = nullptr;
-    dc = nullptr;
-    cdc = nullptr;
+    currentGameWindow = nullptr;
+    currentDC = nullptr;
+    currentCDC = nullptr;
 }
 
 void FxMainWindow::pressProc()
@@ -303,7 +307,7 @@ void FxMainWindow::scanGameWindows()
     }
     else if (invalid != 0)
     {
-        QString summary = QStringLiteral("共找到 %1 个游戏窗口，其中成功 %2 个，失败 %3 个。").arg(found + invalid).arg(found).arg(invalid);
+        QString summary = QStringLiteral("共找到 %1 个游戏窗口，其中截图成功 %2 个，失败 %3 个。").arg(found + invalid).arg(found).arg(invalid);
         QMessageBox::information(this, QStringLiteral("摘要"), summary);
     }
 }
@@ -321,7 +325,7 @@ QImage FxMainWindow::getGamePicture(QRect rect)
 
     BITMAPINFO b;
 
-    if ((IsWindow(gameWindow) == FALSE) || (IsIconic(gameWindow) == TRUE))
+    if ((IsWindow(currentGameWindow) == FALSE) || (IsIconic(currentGameWindow) == TRUE))
         return QImage();
 
     b.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -340,12 +344,12 @@ QImage FxMainWindow::getGamePicture(QRect rect)
     b.bmiColors[0].rgbRed = 8;
     b.bmiColors[0].rgbReserved = 0;
 
-    HBITMAP hBitmap = CreateCompatibleBitmap(dc, rect.width(), rect.height());
-    SelectObject(cdc, hBitmap);
+    HBITMAP hBitmap = CreateCompatibleBitmap(currentDC, rect.width(), rect.height());
+    SelectObject(currentCDC, hBitmap);
 
-    BitBlt(cdc, 0, 0, rect.width(), rect.height(), dc, rect.left(), rect.top(), SRCCOPY);
+    BitBlt(currentCDC, 0, 0, rect.width(), rect.height(), currentDC, rect.left(), rect.top(), SRCCOPY);
     pixelBuffer.resize(rect.width() * rect.height() * 4);
-    GetDIBits(cdc, hBitmap, 0, rect.height(), pixelBuffer.data(), &b, DIB_RGB_COLORS);
+    GetDIBits(currentCDC, hBitmap, 0, rect.height(), pixelBuffer.data(), &b, DIB_RGB_COLORS);
     DeleteObject(hBitmap);
 
     return QImage(pixelBuffer.data(), rect.width(), rect.height(), (rect.width() * 3 + 3) & (~3), QImage::Format_RGB888).rgbSwapped().mirrored();
@@ -427,7 +431,7 @@ SConfigData FxMainWindow::makeConfigFromUI()
     result.petPercent = ui->spinBox_MinPetResource->value();
     result.petKey = ui->comboBox_PetHealthKey->currentIndex();
 
-    result.hash = playerNameHash;
+    result.hash = currentHash;
     result.title = ui->lineEdit_WindowTitle->text();
 
     auto rect = geometry();
@@ -456,7 +460,7 @@ void FxMainWindow::applyConfigToUI(const SConfigData& config)
     ui->spinBox_MinPetResource->setValue(config.petPercent);
     ui->comboBox_PetHealthKey->setCurrentIndex(config.petKey);
 
-    playerNameHash = config.hash;
+    currentHash = config.hash;
     ui->lineEdit_WindowTitle->setText(config.title);
 
     auto rect = geometry();
@@ -691,12 +695,11 @@ void FxMainWindow::on_comboBox_GameWindows_currentIndexChanged(int index)
     if (index == -1)
     {
         clearGDI();
-        playerNameHash.clear();
     }
     else
     {
         initGDI(gameWindows[index]);
-        playerNameHash = playerNameHashes[index];
+        currentHash = playerNameHashes[index];
     }
 }
 
@@ -729,7 +732,7 @@ void FxMainWindow::on_pushButton_SetForeground_clicked()
     SetForegroundWindow(gameWindows[window_index]);
 }
 
-void FxMainWindow::on_checkBox_AutoPlayerHealth_toggled(bool checked)
+void FxMainWindow::on_checkBox_AutoPlayerSupply_toggled(bool checked)
 {
     ui->spinBox_MinPlayerHealth->setEnabled(!checked);
     ui->comboBox_PlayerHealthKey->setEnabled(!checked);

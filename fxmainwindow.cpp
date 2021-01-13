@@ -1,5 +1,4 @@
 ﻿#include "fxmainwindow.h"
-#include "ui_fxmainwindow.h"
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
@@ -7,6 +6,7 @@
 #include <QStyledItemDelegate>
 #include <QPainter>
 #include <QCryptographicHash>
+#include <QApplication>
 
 //角色名取样区域
 static const QRect playerNameRect{ 80,22,90,14 };
@@ -33,29 +33,15 @@ public:
 
 FxMainWindow::FxMainWindow(QWidget* parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
 {
     currentGameWindow = nullptr;
     currentDC = nullptr;
     currentCDC = nullptr;
 
-    ui->setupUi(this);
-    ui->comboBox_GameWindows->setItemDelegate(new CharacterBoxDelegate);
-    setFixedSize(width(), height());
+    setupUI();
 
-    applyBlankPixmapForPlayerHealth();
-    applyBlankPixmapForPetResource();
-
-    for (int index = 0; index < 10; ++index)
-    {
-        QCheckBox* checkBox = findChild<QCheckBox*>(QStringLiteral("checkBox_F%1").arg(index + 1));
-        QDoubleSpinBox* spinBox = findChild<QDoubleSpinBox*>(QStringLiteral("doubleSpinBox_F%1").arg(index + 1));
-
-        enumerateControls[index].first = checkBox;
-        enumerateControls[index].second = spinBox;
-
-        connect(checkBox, &QCheckBox::toggled, this, &FxMainWindow::on_any_Fx_checkBox_toggled);
-    }
+    applyBlankPixmapForLabel(ui.label_player_image);
+    applyBlankPixmapForLabel(ui.label_pet_image);
 
     connect(&pressTimer, &QTimer::timeout, this, &FxMainWindow::pressProc);
     connect(&supplyTimer, &QTimer::timeout, this, &FxMainWindow::supplyProc);
@@ -86,16 +72,6 @@ FxMainWindow::~FxMainWindow()
 
     autoWriteConfig();
     clearGDI();
-
-    delete ui;
-}
-
-void FxMainWindow::on_pushButton_UpdateGameWindows_clicked()
-{
-    scanGameWindows();
-
-    if (!gameWindows.isEmpty())
-        autoSelectAndRenameGameWindow(currentHash);
 }
 
 void FxMainWindow::autoSelectAndRenameGameWindow(const QByteArray& hash)
@@ -117,13 +93,13 @@ void FxMainWindow::autoSelectAndRenameGameWindow(const QByteArray& hash)
         }
     }
 
-    ui->comboBox_GameWindows->setCurrentIndex(index);
+    ui.combo_windows->setCurrentIndex(index);
 
     //找到窗口之后自动更改窗口标题
     if (index != -1)
     {
         initGDI(gameWindows[index]);
-        on_pushButton_ChangeWindowTitle_clicked();
+        changeWindowTitle();
     }
     else
     {
@@ -158,12 +134,12 @@ void FxMainWindow::clearGDI()
 
 void FxMainWindow::pressProc()
 {
-    if (!ui->checkBox_Switch->isChecked())
+    if (!ui.check_global_switch->isChecked())
     {
         return;
     }
 
-    int window_index = ui->comboBox_GameWindows->currentIndex();
+    int window_index = ui.combo_windows->currentIndex();
 
     if (window_index == -1)
     {
@@ -172,7 +148,7 @@ void FxMainWindow::pressProc()
 
     for (int key_index = 0; key_index < 10; ++key_index)
     {
-        if (!enumerateControls[key_index].first->isChecked())
+        if (!ui.key_checks[key_index]->isChecked())
         {
             continue;
         }
@@ -181,8 +157,8 @@ void FxMainWindow::pressProc()
 
         std::chrono::milliseconds differFromSelf = std::chrono::duration_cast<std::chrono::milliseconds>(nowTimePoint - lastPressedTimePoint[key_index]);
         std::chrono::milliseconds differFromAny = std::chrono::duration_cast<std::chrono::milliseconds>(nowTimePoint - lastAnyPressedTimePoint);
-        std::chrono::milliseconds selfInterval(static_cast<long long>(enumerateControls[key_index].second->value() * 1000));
-        std::chrono::milliseconds anyInterval(static_cast<long long>(ui->doubleSpinBox_FxInterval->value() * 1000));
+        std::chrono::milliseconds selfInterval(static_cast<long long>(ui.key_intervals[key_index]->value() * 1000));
+        std::chrono::milliseconds anyInterval(static_cast<long long>(ui.spin_global_interval->value() * 1000));
 
         if (differFromSelf >= selfInterval && differFromAny >= anyInterval)
         {
@@ -196,49 +172,49 @@ void FxMainWindow::pressProc()
 
 void FxMainWindow::supplyProc()
 {
-    if (!ui->checkBox_Switch->isChecked())
+    if (!ui.check_global_switch->isChecked())
     {
         return;
     }
 
-    int window_index = ui->comboBox_GameWindows->currentIndex();
+    int window_index = ui.combo_windows->currentIndex();
 
     if (window_index == -1)
     {
         return;
     }
 
-    if (ui->checkBox_AutoPlayerSupply->isChecked())
+    if (ui.check_player_supply->isChecked())
     {
-        int key_index = ui->comboBox_PlayerHealthKey->currentIndex();
+        int key_index = ui.combo_player_supply_key->currentIndex();
 
         if (key_index != -1)
         {
             QImage healthPicture = getGamePicture(playerHealthRect);
 
-            if (isPlayerLowHealth(healthPicture, ui->spinBox_MinPlayerHealth->value()))
+            if (isPlayerLowHealth(healthPicture, ui.spin_player_supply->value()))
             {
                 pressKey(gameWindows[window_index], VK_F1 + key_index);
             }
 
-            ui->label_PlayerHealth->setPixmap(QPixmap::fromImage(healthPicture));
+            ui.label_player_image->setPixmap(QPixmap::fromImage(healthPicture));
         }
     }
 
-    if (ui->checkBox_AutoPetSupply->isChecked())
+    if (ui.check_pet_supply->isChecked())
     {
-        int key_index = ui->comboBox_PetHealthKey->currentIndex();
+        int key_index = ui.combo_pet_supply_key->currentIndex();
 
         if (key_index != -1)
         {
             QImage healthPicture = getGamePicture(petResourceRect);
 
-            if (isPetLowResource(healthPicture, ui->spinBox_MinPetResource->value()))
+            if (isPetLowResource(healthPicture, ui.spin_pet_supply->value()))
             {
                 pressKey(gameWindows[window_index], VK_F1 + key_index);
             }
 
-            ui->label_PetResource->setPixmap(QPixmap::fromImage(healthPicture));
+            ui.label_pet_image->setPixmap(QPixmap::fromImage(healthPicture));
         }
     }
 }
@@ -263,12 +239,12 @@ void FxMainWindow::scanGameWindows()
     gameWindows.clear();
     playerNameImages.clear();
     playerNameHashes.clear();
-    ui->comboBox_GameWindows->clear();
-    ui->checkBox_Switch->setChecked(false);
+    ui.combo_windows->clear();
+    ui.check_global_switch->setChecked(false);
 
     HWND hWindow = FindWindowW(L"QQSwordWinClass", nullptr);
 
-    ui->comboBox_GameWindows->blockSignals(true);
+    ui.combo_windows->blockSignals(true);
 
     while (hWindow != nullptr)
     {
@@ -288,7 +264,7 @@ void FxMainWindow::scanGameWindows()
                 gameWindows.push_back(hWindow);
                 playerNameHashes.push_back(imageHash(playerNameImage));
                 playerNameImages.push_back(playerNameImage);
-                ui->comboBox_GameWindows->addItem(QIcon(QPixmap::fromImage(playerNameImage)), nullptr);
+                ui.combo_windows->addItem(QIcon(QPixmap::fromImage(playerNameImage)), nullptr);
             }
             else
             {
@@ -299,7 +275,7 @@ void FxMainWindow::scanGameWindows()
         hWindow = FindWindowExW(nullptr, hWindow, L"QQSwordWinClass", nullptr);
     }
 
-    ui->comboBox_GameWindows->blockSignals(false);
+    ui.combo_windows->blockSignals(false);
 
     if (found + invalid == 0)
     {
@@ -309,6 +285,23 @@ void FxMainWindow::scanGameWindows()
     {
         QString summary = QStringLiteral("共找到 %1 个游戏窗口，其中截图成功 %2 个，失败 %3 个。").arg(found + invalid).arg(found).arg(invalid);
         QMessageBox::information(this, QStringLiteral("摘要"), summary);
+    }
+}
+
+void FxMainWindow::changeWindowTitle()
+{
+    int window_index = ui.combo_windows->currentIndex();
+
+    if (window_index == -1)
+    {
+        return;
+    }
+
+    QString text = ui.line_title->text();
+
+    if (!text.isEmpty())
+    {
+        SetWindowTextW(gameWindows[window_index], QStringLiteral("QQ自由幻想 - %1").arg(text).toStdWString().c_str());
     }
 }
 
@@ -418,21 +411,22 @@ SConfigData FxMainWindow::makeConfigFromUI()
 
     for (int index = 0; index < 10; ++index)
     {
-        result.fxSwitch[index] = enumerateControls[index].first->isChecked();
-        result.fxCD[index] = enumerateControls[index].second->value();
+        result.fxSwitch[index] = ui.key_checks[index]->isChecked();
+        result.fxCD[index] = ui.key_intervals[index]->value();
     }
-    result.fxInterval = ui->doubleSpinBox_FxInterval->value();
 
-    result.playerSwitch = ui->checkBox_AutoPlayerSupply->isChecked();
-    result.playerPercent = ui->spinBox_MinPlayerHealth->value();
-    result.playerKey = ui->comboBox_PlayerHealthKey->currentIndex();
+    result.fxInterval = ui.spin_global_interval->value();
 
-    result.petSwitch = ui->checkBox_AutoPetSupply->isChecked();
-    result.petPercent = ui->spinBox_MinPetResource->value();
-    result.petKey = ui->comboBox_PetHealthKey->currentIndex();
+    result.playerSwitch = ui.check_player_supply->isChecked();
+    result.playerPercent = ui.spin_player_supply->value();
+    result.playerKey = ui.combo_player_supply_key->currentIndex();
+
+    result.petSwitch = ui.check_pet_supply->isChecked();
+    result.petPercent = ui.spin_pet_supply->value();
+    result.petKey = ui.combo_pet_supply_key->currentIndex();
 
     result.hash = currentHash;
-    result.title = ui->lineEdit_WindowTitle->text();
+    result.title = ui.line_title->text();
 
     auto rect = geometry();
 
@@ -446,22 +440,22 @@ void FxMainWindow::applyConfigToUI(const SConfigData& config)
 {
     for (int index = 0; index < 10; ++index)
     {
-        enumerateControls[index].first->setChecked(config.fxSwitch[index]);
-        enumerateControls[index].second->setValue(config.fxCD[index]);
+        ui.key_checks[index]->setChecked(config.fxSwitch[index]);
+        ui.key_intervals[index]->setValue(config.fxCD[index]);
     }
 
-    ui->doubleSpinBox_FxInterval->setValue(config.fxInterval);
+    ui.spin_global_interval->setValue(config.fxInterval);
 
-    ui->checkBox_AutoPlayerSupply->setChecked(config.playerSwitch);
-    ui->spinBox_MinPlayerHealth->setValue(config.playerPercent);
-    ui->comboBox_PlayerHealthKey->setCurrentIndex(config.playerKey);
+    ui.check_player_supply->setChecked(config.playerSwitch);
+    ui.spin_player_supply->setValue(config.playerPercent);
+    ui.combo_player_supply_key->setCurrentIndex(config.playerKey);
 
-    ui->checkBox_AutoPetSupply->setChecked(config.petSwitch);
-    ui->spinBox_MinPetResource->setValue(config.petPercent);
-    ui->comboBox_PetHealthKey->setCurrentIndex(config.petKey);
+    ui.check_pet_supply->setChecked(config.petSwitch);
+    ui.spin_pet_supply->setValue(config.petPercent);
+    ui.combo_pet_supply_key->setCurrentIndex(config.petKey);
 
     currentHash = config.hash;
-    ui->lineEdit_WindowTitle->setText(config.title);
+    ui.line_title->setText(config.title);
 
     auto rect = geometry();
 
@@ -664,108 +658,235 @@ bool FxMainWindow::isPetLowResource(QImage& sample, int precent)
     return result;
 }
 
-void FxMainWindow::on_any_Fx_checkBox_toggled(bool checked)
+void FxMainWindow::setupUI()
 {
-    QObject* control = sender();
+    auto get_h_line = [](QWidget* parent = nullptr) {
+        auto line = new QFrame(parent);
 
-    auto index = std::find_if(enumerateControls.begin(), enumerateControls.end(),
-        [control](const std::pair<QCheckBox*, QDoubleSpinBox*>& p)
-        {return p.first == control; })
-        - enumerateControls.begin();
+        line->setFrameShape(QFrame::HLine);
+        line->setFrameShadow(QFrame::Sunken);
+        line->setLineWidth(1);
 
-    enumerateControls[index].second->setEnabled(!checked);
-    resetTimeStamp(index);
-}
+        return line;
+    };
 
-void FxMainWindow::on_checkBox_Switch_toggled(bool checked)
-{
-    if (checked)
+    QFont switch_font;
+    switch_font.setFamily(QStringLiteral("微软雅黑"));
+    switch_font.setPointSize(20);
+    switch_font.setBold(true);
+
+    QStringList supply_keys;
+
+    for (int index = 0; index < 10; ++index)
     {
-        resetAllTimeStamps();
-    }
-}
-
-void FxMainWindow::on_comboBox_GameWindows_currentIndexChanged(int index)
-{
-    ui->checkBox_Switch->setChecked(false);
-
-    applyBlankPixmapForPlayerHealth();
-    applyBlankPixmapForPetResource();
-
-    if (index == -1)
-    {
-        clearGDI();
-    }
-    else
-    {
-        initGDI(gameWindows[index]);
-        currentHash = playerNameHashes[index];
-    }
-}
-
-void FxMainWindow::on_pushButton_ChangeWindowTitle_clicked()
-{
-    int window_index = ui->comboBox_GameWindows->currentIndex();
-
-    if (window_index == -1)
-    {
-        return;
+        supply_keys << QString("F%1").arg(index + 1);
     }
 
-    QString text = ui->lineEdit_WindowTitle->text();
+    auto main_widget = new QWidget;
+    auto vlayout_main = new QVBoxLayout(main_widget);
 
-    if (!text.isEmpty())
+    ui.btn_scan = new QPushButton(QStringLiteral("扫描游戏窗口"), main_widget);
+    connect(ui.btn_scan, &QPushButton::clicked, [this]()
+        {
+            scanGameWindows();
+
+            if (!gameWindows.isEmpty())
+                autoSelectAndRenameGameWindow(currentHash);
+        });
+    vlayout_main->addWidget(ui.btn_scan);
+
+    ui.combo_windows = new QComboBox(main_widget);
+    ui.combo_windows->setItemDelegate(new CharacterBoxDelegate);
+    connect(ui.combo_windows, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [this](int index)
+        {
+            ui.check_global_switch->setChecked(false);
+
+            applyBlankPixmapForLabel(ui.label_player_image);
+            applyBlankPixmapForLabel(ui.label_pet_image);
+
+            if (index == -1)
+            {
+                clearGDI();
+            }
+            else
+            {
+                initGDI(gameWindows[index]);
+                currentHash = playerNameHashes[index];
+            }
+        });
+    vlayout_main->addWidget(ui.combo_windows);
+
+    ui.line_title = new QLineEdit(main_widget);
+    auto hlayout_title = new QHBoxLayout(main_widget);
+    hlayout_title->addWidget(new QLabel(QStringLiteral("窗口标题"), main_widget));
+    hlayout_title->addWidget(ui.line_title, 1);
+    vlayout_main->addLayout(hlayout_title);
+
+    ui.btn_change_title = new QPushButton(QStringLiteral("修改窗口标题"), main_widget);
+    connect(ui.btn_change_title, &QPushButton::clicked, this, &FxMainWindow::changeWindowTitle);
+    vlayout_main->addWidget(ui.btn_change_title);
+
+    ui.btn_switch_to_window = new QPushButton(QStringLiteral("切换到游戏窗口"), main_widget);
+    connect(ui.btn_switch_to_window, &QPushButton::clicked, [this]()
+        {
+            int window_index = ui.combo_windows->currentIndex();
+
+            if (window_index == -1)
+            {
+                return;
+            }
+
+            SetForegroundWindow(gameWindows[window_index]);
+        });
+    vlayout_main->addWidget(ui.btn_switch_to_window);
+
+    vlayout_main->addWidget(get_h_line(main_widget));
+
+    ui.check_global_switch = new QCheckBox(QStringLiteral("全局开关"), main_widget);
+    ui.check_global_switch->setFont(switch_font);
+    connect(ui.check_global_switch, &QCheckBox::toggled, [this](bool checked)
+        {
+            if (checked)
+            {
+                resetAllTimeStamps();
+            }
+        });
+    auto hlayout_switch = new QHBoxLayout(main_widget);
+    hlayout_switch->addStretch();
+    hlayout_switch->addWidget(ui.check_global_switch);
+    hlayout_switch->addStretch();
+    vlayout_main->addLayout(hlayout_switch);
+
+    ui.spin_global_interval = new QDoubleSpinBox(main_widget);
+    ui.spin_global_interval->setSuffix(" s");
+    ui.spin_global_interval->setDecimals(2);
+    ui.spin_global_interval->setMinimum(0.1);
+    ui.spin_global_interval->setMaximum(365.0);
+    ui.spin_global_interval->setSingleStep(0.01);
+    ui.spin_global_interval->setValue(0.75);
+    auto hlayout_press_interval = new QHBoxLayout(main_widget);
+    hlayout_press_interval->addWidget(new QLabel(QStringLiteral("按键间隔"), main_widget));
+    hlayout_press_interval->addWidget(ui.spin_global_interval);
+    hlayout_press_interval->addStretch();
+    vlayout_main->addLayout(hlayout_press_interval);
+
+    for (int index = 0; index < 10; ++index)
     {
-        SetWindowTextW(gameWindows[window_index], QStringLiteral("QQ自由幻想 - %1").arg(text).toStdWString().c_str());
+        auto hlayout_key = new QHBoxLayout(main_widget);
+        auto check_key = new QCheckBox(QString("F%1").arg(index + 1), main_widget);
+        auto spin_key_interval = new QDoubleSpinBox(main_widget);
+        spin_key_interval->setSuffix(" s");
+        spin_key_interval->setDecimals(1);
+        spin_key_interval->setMinimum(0.1);
+        spin_key_interval->setMaximum(365.0);
+        spin_key_interval->setSingleStep(0.1);
+        spin_key_interval->setValue(1.0);
+        ui.key_checks[index] = check_key;
+        ui.key_intervals[index] = spin_key_interval;
+
+        connect(check_key, &QCheckBox::toggled,
+            [this, index](bool checked) {
+                ui.key_intervals[index]->setEnabled(!checked);
+                resetTimeStamp(index);
+            });
+
+        hlayout_key->addWidget(check_key);
+        hlayout_key->addWidget(spin_key_interval);
+        hlayout_key->addStretch();
+
+        vlayout_main->addLayout(hlayout_key);
     }
+
+    vlayout_main->addWidget(get_h_line(main_widget));
+
+    auto hlayout_player_image = new QHBoxLayout(main_widget);
+    ui.label_player_image = new QLabel(main_widget);
+    ui.label_player_image->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    ui.label_player_image->setMinimumSize(89, 7);
+    ui.label_player_image->setMaximumSize(89, 7);
+    ui.label_player_image->setFrameShape(QFrame::NoFrame);
+    ui.label_player_image->setScaledContents(true);
+    hlayout_player_image->addStretch();
+    hlayout_player_image->addWidget(ui.label_player_image);
+    hlayout_player_image->addStretch();
+    vlayout_main->addLayout(hlayout_player_image);
+
+    auto hlayout_player_supply = new QHBoxLayout(main_widget);
+    ui.check_player_supply = new QCheckBox(QStringLiteral("角色补给"), main_widget);
+    ui.spin_player_supply = new QSpinBox(main_widget);
+    ui.combo_player_supply_key = new QComboBox(main_widget);
+    connect(ui.check_player_supply, &QCheckBox::toggled, [this](bool checked)
+        {
+            ui.spin_player_supply->setEnabled(!checked);
+            ui.combo_player_supply_key->setEnabled(!checked);
+
+            if (!checked)
+            {
+                applyBlankPixmapForLabel(ui.label_player_image);
+            }
+        });
+    ui.combo_player_supply_key->addItems(supply_keys);
+    ui.combo_player_supply_key->setCurrentIndex(0);
+    ui.spin_player_supply->setSuffix(" %");
+    ui.spin_player_supply->setMinimum(1);
+    ui.spin_player_supply->setMaximum(99);
+    ui.spin_player_supply->setSingleStep(1);
+    ui.spin_player_supply->setValue(50);
+    hlayout_player_supply->addWidget(ui.check_player_supply);
+    hlayout_player_supply->addWidget(ui.spin_player_supply);
+    hlayout_player_supply->addWidget(ui.combo_player_supply_key);
+    vlayout_main->addLayout(hlayout_player_supply);
+
+    vlayout_main->addWidget(get_h_line(main_widget));
+
+    auto hlayout_pet_image = new QHBoxLayout(main_widget);
+    ui.label_pet_image = new QLabel(main_widget);
+    ui.label_pet_image->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    ui.label_pet_image->setMinimumSize(34, 34);
+    ui.label_pet_image->setMaximumSize(34, 34);
+    ui.label_pet_image->setFrameShape(QFrame::NoFrame);
+    ui.label_pet_image->setScaledContents(true);
+    hlayout_pet_image->addStretch();
+    hlayout_pet_image->addWidget(ui.label_pet_image);
+    hlayout_pet_image->addStretch();
+    vlayout_main->addLayout(hlayout_pet_image);
+
+    auto hlayout_pet_supply = new QHBoxLayout(main_widget);
+    ui.check_pet_supply = new QCheckBox(QStringLiteral("宠物补给"), main_widget);
+    ui.spin_pet_supply = new QSpinBox(main_widget);
+    ui.combo_pet_supply_key = new QComboBox(main_widget);
+    connect(ui.check_pet_supply, &QCheckBox::toggled, [this](bool checked)
+        {
+            ui.spin_pet_supply->setEnabled(!checked);
+            ui.combo_pet_supply_key->setEnabled(!checked);
+
+            if (!checked)
+            {
+                applyBlankPixmapForLabel(ui.label_pet_image);
+            }
+        });
+    ui.combo_pet_supply_key->addItems(supply_keys);
+    ui.combo_pet_supply_key->setCurrentIndex(0);
+    ui.spin_pet_supply->setSuffix(" %");
+    ui.spin_pet_supply->setMinimum(1);
+    ui.spin_pet_supply->setMaximum(99);
+    ui.spin_pet_supply->setSingleStep(1);
+    ui.spin_pet_supply->setValue(50);
+    hlayout_pet_supply->addWidget(ui.check_pet_supply);
+    hlayout_pet_supply->addWidget(ui.spin_pet_supply);
+    hlayout_pet_supply->addWidget(ui.combo_pet_supply_key);
+    vlayout_main->addLayout(hlayout_pet_supply);
+
+    main_widget->setLayout(vlayout_main);
+    this->setCentralWidget(main_widget);
+    this->setFixedSize(minimumSize());
 }
 
-void FxMainWindow::on_pushButton_SetForeground_clicked()
+void FxMainWindow::applyBlankPixmapForLabel(QLabel* label)
 {
-    int window_index = ui->comboBox_GameWindows->currentIndex();
-
-    if (window_index == -1)
-    {
-        return;
-    }
-
-    SetForegroundWindow(gameWindows[window_index]);
-}
-
-void FxMainWindow::on_checkBox_AutoPlayerSupply_toggled(bool checked)
-{
-    ui->spinBox_MinPlayerHealth->setEnabled(!checked);
-    ui->comboBox_PlayerHealthKey->setEnabled(!checked);
-
-    if (!checked)
-    {
-        applyBlankPixmapForPlayerHealth();
-    }
-}
-
-void FxMainWindow::on_checkBox_AutoPetSupply_toggled(bool checked)
-{
-    ui->spinBox_MinPetResource->setEnabled(!checked);
-    ui->comboBox_PetHealthKey->setEnabled(!checked);
-
-    if (!checked)
-    {
-        applyBlankPixmapForPetResource();
-    }
-}
-
-void FxMainWindow::applyBlankPixmapForPlayerHealth()
-{
-    QPixmap playerHealthPixmap(playerHealthRect.size() * 2);
-    playerHealthPixmap.fill(Qt::gray);
-    ui->label_PlayerHealth->setPixmap(playerHealthPixmap);
-}
-
-void FxMainWindow::applyBlankPixmapForPetResource()
-{
-    QPixmap petResourcePixmap(petResourceRect.size() * 2);
-    petResourcePixmap.fill(Qt::gray);
-    ui->label_PetResource->setPixmap(petResourcePixmap);
+    QPixmap pixmap(label->size());
+    pixmap.fill(Qt::gray);
+    label->setPixmap(pixmap);
 }
 
 QPoint FxMainWindow::getPlayerHealthSamplePoint(QImage image, int percent)

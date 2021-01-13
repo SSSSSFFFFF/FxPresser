@@ -8,6 +8,11 @@
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QLabel>
+#include <QComboBox>
+#include <QSpacerItem>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QHBoxLayout>
 #include <QDir>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -19,10 +24,6 @@
 #include <array>
 #include <utility>
 #include <chrono>
-
-QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
-QT_END_NAMESPACE
 
 struct QImageAdapter
 {
@@ -94,28 +95,31 @@ public:
     FxMainWindow(QWidget* parent = nullptr);
     ~FxMainWindow();
 
-private slots:
-    void on_pushButton_UpdateGameWindows_clicked();
-
-    void on_any_Fx_checkBox_toggled(bool checked);
-
-    void on_comboBox_GameWindows_currentIndexChanged(int index);
-
-    void on_checkBox_Switch_toggled(bool checked);
-
-    void on_pushButton_ChangeWindowTitle_clicked();
-
-    void on_pushButton_SetForeground_clicked();
-
-    void on_checkBox_AutoPlayerSupply_toggled(bool checked);
-
-    void on_checkBox_AutoPetSupply_toggled(bool checked);
-
 private:
-    Ui::MainWindow* ui;
+    struct
+    {
+        QPushButton* btn_scan;
+        QComboBox* combo_windows;
+        QLineEdit* line_title;
+        QPushButton* btn_change_title;
+        QPushButton* btn_switch_to_window;
+        QCheckBox* check_global_switch;
+        QDoubleSpinBox* spin_global_interval;
+        std::array<QCheckBox*, 10> key_checks;
+        std::array<QDoubleSpinBox*, 10> key_intervals;
+        QLabel* label_player_image;
+        QCheckBox* check_player_supply;
+        QSpinBox* spin_player_supply;
+        QComboBox* combo_player_supply_key;
+        QLabel* label_pet_image;
+        QCheckBox* check_pet_supply;
+        QSpinBox* spin_pet_supply;
+        QComboBox* combo_pet_supply_key;
+    } ui;
 
-    void applyBlankPixmapForPlayerHealth();
-    void applyBlankPixmapForPetResource();
+    void setupUI();
+
+    void applyBlankPixmapForLabel(QLabel *label);
 
     //按照设定百分比截取血条图片中的一点
     static QPoint getPlayerHealthSamplePoint(QImage image, int percent);
@@ -140,8 +144,6 @@ private:
     QTimer pressTimer; //固定间隔按键的计时器
     QTimer supplyTimer; //补给计时器
 
-    //10个界面控件
-    std::array<std::pair<QCheckBox*, QDoubleSpinBox*>, 10> enumerateControls;
     //每个按键上次触发的时间点，用于计算单个按键的间隔
     std::array<std::chrono::steady_clock::time_point, 10> lastPressedTimePoint;
     //最后一次按键的时间点，用于确定实际按键的时机
@@ -178,6 +180,8 @@ private:
 
     //扫描游戏窗口
     void scanGameWindows();
+
+    void changeWindowTitle();
 
     //执行某个按键
     void pressKey(HWND window, UINT code);

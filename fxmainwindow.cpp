@@ -7,6 +7,7 @@
 #include <QPainter>
 #include <QCryptographicHash>
 #include <QApplication>
+#include <QButtonGroup>
 
 //角色名取样区域
 static const QRect playerNameRect{ 80,22,90,14 };
@@ -146,27 +147,21 @@ void FxMainWindow::pressProc()
         return;
     }
 
+    if (currentDefaultKey != -1 && !defaultKeyTriggered)
+    {
+        tryPressKey(gameWindows[window_index], currentDefaultKey, true);
+        defaultKeyTriggered = true;
+    }
+
     for (int key_index = 0; key_index < 10; ++key_index)
     {
-        if (!ui.key_checks[key_index]->isChecked())
+        //保证缺省键只触发一次
+        if (key_index == currentDefaultKey || !ui.key_checks[key_index]->isChecked())
         {
             continue;
         }
 
-        auto nowTimePoint = std::chrono::steady_clock::now();
-
-        std::chrono::milliseconds differFromSelf = std::chrono::duration_cast<std::chrono::milliseconds>(nowTimePoint - lastPressedTimePoint[key_index]);
-        std::chrono::milliseconds differFromAny = std::chrono::duration_cast<std::chrono::milliseconds>(nowTimePoint - lastAnyPressedTimePoint);
-        std::chrono::milliseconds selfInterval(static_cast<long long>(ui.key_intervals[key_index]->value() * 1000));
-        std::chrono::milliseconds anyInterval(static_cast<long long>(ui.spin_global_interval->value() * 1000));
-
-        if (differFromSelf >= selfInterval && differFromAny >= anyInterval)
-        {
-            lastPressedTimePoint[key_index] += selfInterval;
-            lastAnyPressedTimePoint = nowTimePoint;
-
-            pressKey(gameWindows[window_index], VK_F1 + key_index);
-        }
+        tryPressKey(gameWindows[window_index], key_index, false);
     }
 }
 
@@ -226,7 +221,8 @@ void FxMainWindow::resetTimeStamp(int index)
 
 void FxMainWindow::resetAllTimeStamps()
 {
-    lastPressedTimePoint.fill(std::chrono::steady_clock::now());
+    //为了实现点击全局开关时自动触发一次，此处将每个按键的上次时间设为0
+    lastPressedTimePoint.fill(std::chrono::steady_clock::time_point());
     lastAnyPressedTimePoint = std::chrono::steady_clock::time_point();
 }
 
@@ -302,6 +298,24 @@ void FxMainWindow::changeWindowTitle()
     if (!text.isEmpty())
     {
         SetWindowTextW(gameWindows[window_index], QStringLiteral("QQ自由幻想 - %1").arg(text).toStdWString().c_str());
+    }
+}
+
+void FxMainWindow::tryPressKey(HWND window, int key_index, bool force)
+{
+    auto nowTimePoint = std::chrono::steady_clock::now();
+
+    std::chrono::milliseconds differFromSelf = std::chrono::duration_cast<std::chrono::milliseconds>(nowTimePoint - lastPressedTimePoint[key_index]);
+    std::chrono::milliseconds differFromAny = std::chrono::duration_cast<std::chrono::milliseconds>(nowTimePoint - lastAnyPressedTimePoint);
+    std::chrono::milliseconds selfInterval(static_cast<long long>(ui.key_intervals[key_index]->value() * 1000));
+    std::chrono::milliseconds anyInterval(static_cast<long long>(ui.spin_global_interval->value() * 1000));
+
+    if (force || differFromSelf >= selfInterval && differFromAny >= anyInterval)
+    {
+        lastPressedTimePoint[key_index] += selfInterval;
+        lastAnyPressedTimePoint = nowTimePoint;
+
+        pressKey(window, VK_F1 + key_index);
     }
 }
 
@@ -415,7 +429,8 @@ SConfigData FxMainWindow::makeConfigFromUI()
         result.fxCD[index] = ui.key_intervals[index]->value();
     }
 
-    result.fxInterval = ui.spin_global_interval->value();
+    result.globalInterval = ui.spin_global_interval->value();
+    result.defaultKey = currentDefaultKey;
 
     result.playerSwitch = ui.check_player_supply->isChecked();
     result.playerPercent = ui.spin_player_supply->value();
@@ -444,7 +459,13 @@ void FxMainWindow::applyConfigToUI(const SConfigData& config)
         ui.key_intervals[index]->setValue(config.fxCD[index]);
     }
 
-    ui.spin_global_interval->setValue(config.fxInterval);
+    ui.spin_global_interval->setValue(config.globalInterval);
+
+    currentDefaultKey = config.defaultKey;
+    for (int index = 0; index < 10; ++index)
+    {
+        ui.key_defaults[index]->setChecked(index == config.defaultKey);
+    }
 
     ui.check_player_supply->setChecked(config.playerSwitch);
     ui.spin_player_supply->setValue(config.playerPercent);
@@ -485,7 +506,8 @@ QJsonObject FxMainWindow::configToJson(const SConfigData& config)
     }
     result[QStringLiteral("AutoPress")] = pressArray;
 
-    result["Interval"] = config.fxInterval;
+    result["Interval"] = config.globalInterval;
+    result["DefaultKey"] = config.defaultKey;
 
     result["PlayerSwitch"] = config.playerSwitch;
     result["PlayerPercent"] = config.playerPercent;
@@ -522,7 +544,8 @@ SConfigData FxMainWindow::jsonToConfig(QJsonObject json)
         }
     }
 
-    result.fxInterval = json.take("Interval").toDouble(0.7);
+    result.globalInterval = json.take("Interval").toDouble(0.7);
+    result.defaultKey = json.take("DefaultKey").toInt(-1);
 
     result.playerSwitch = json.take("PlayerSwitch").toBool(false);
     result.playerPercent = json.take("PlayerPercent").toInt(50);
@@ -718,7 +741,9 @@ void FxMainWindow::setupUI()
 
     ui.line_title = new QLineEdit(main_widget);
     auto hlayout_title = new QHBoxLayout(main_widget);
-    hlayout_title->addWidget(new QLabel(QStringLiteral("窗口标题"), main_widget));
+    auto label_title = new QLabel(QStringLiteral("窗口标题"), main_widget);
+    label_title->setToolTip(QStringLiteral("方便OBS之类的软件区分/自动切换捕获窗口。"));
+    hlayout_title->addWidget(label_title);
     hlayout_title->addWidget(ui.line_title, 1);
     vlayout_main->addLayout(hlayout_title);
 
@@ -748,6 +773,7 @@ void FxMainWindow::setupUI()
         {
             if (checked)
             {
+                defaultKeyTriggered = false;
                 resetAllTimeStamps();
             }
         });
@@ -765,16 +791,35 @@ void FxMainWindow::setupUI()
     ui.spin_global_interval->setSingleStep(0.01);
     ui.spin_global_interval->setValue(0.75);
     auto hlayout_press_interval = new QHBoxLayout(main_widget);
-    hlayout_press_interval->addWidget(new QLabel(QStringLiteral("按键间隔"), main_widget));
+    auto label_global_switch = new QLabel(QStringLiteral("全局间隔"), main_widget);
+    label_global_switch->setToolTip(QStringLiteral("任意两次触发按键的最小间隔，用于若干个技能同时使用的情况。\n"
+        "根据武器的施法速度设置合适的值。\n"
+        "比如治疗+解衰弱交替施法：兔牙衔接较快，全局间隔设置为0.7秒，两个技能间隔均设置为1.7秒，即可自动交替使用。"));
+    hlayout_press_interval->addStretch();
+    hlayout_press_interval->addWidget(label_global_switch);
     hlayout_press_interval->addWidget(ui.spin_global_interval);
     hlayout_press_interval->addStretch();
     vlayout_main->addLayout(hlayout_press_interval);
+    vlayout_main->addWidget(get_h_line());
+
+    auto gridlayout_keys = new QGridLayout(main_widget);
+    auto label_default_skill = new QLabel(QStringLiteral("是缺省技能"), main_widget);
+    label_default_skill->setToolTip(QStringLiteral("指在游戏中右键绿框的技能，最多能设置一个。\n"
+        "缺省技能在'全局开关'打开时会首先被触发且只触发一次，建议只用于平砍。\n"
+        "药师治疗术等技能可以取消游戏内缺省，通过设置合适的间隔达到无缝衔接。"));
+    gridlayout_keys->addWidget(new QLabel(QStringLiteral("启用"), main_widget), 0, 0);
+    auto label_interval = new QLabel(QStringLiteral("间隔"), main_widget);
+    label_interval->setToolTip(QStringLiteral("两次触发此按键的间隔，设置成CD+施法时间，即可做到无缝衔接，可以在游戏中试出合适的值。\n"
+        "因为已经提供了一位小数，不建议像老魔手一样全部设置成1.0秒。"));
+    gridlayout_keys->addWidget(label_interval, 0, 1);
+    gridlayout_keys->addWidget(label_default_skill, 0, 2);
 
     for (int index = 0; index < 10; ++index)
     {
-        auto hlayout_key = new QHBoxLayout(main_widget);
         auto check_key = new QCheckBox(QString("F%1").arg(index + 1), main_widget);
         auto spin_key_interval = new QDoubleSpinBox(main_widget);
+        auto check_default = new QCheckBox(main_widget);
+
         spin_key_interval->setSuffix(" s");
         spin_key_interval->setDecimals(1);
         spin_key_interval->setMinimum(0.1);
@@ -783,6 +828,7 @@ void FxMainWindow::setupUI()
         spin_key_interval->setValue(1.0);
         ui.key_checks[index] = check_key;
         ui.key_intervals[index] = spin_key_interval;
+        ui.key_defaults[index] = check_default;
 
         connect(check_key, &QCheckBox::toggled,
             [this, index](bool checked) {
@@ -790,12 +836,31 @@ void FxMainWindow::setupUI()
                 resetTimeStamp(index);
             });
 
-        hlayout_key->addWidget(check_key);
-        hlayout_key->addWidget(spin_key_interval);
-        hlayout_key->addStretch();
+        connect(check_default, &QCheckBox::toggled,
+            [this, index](bool checked) {
+                //模拟QButtonGroup互斥，并能够全部取消选择
+                if (checked)
+                {
+                    currentDefaultKey = index;
 
-        vlayout_main->addLayout(hlayout_key);
+                    for (int key_index = 0; key_index < 10; ++key_index)
+                    {
+                        if (key_index != index)
+                            ui.key_defaults[key_index]->setChecked(false);
+                    }
+                }
+                else
+                {
+                    currentDefaultKey = -1;
+                }
+            });
+
+        gridlayout_keys->addWidget(check_key, index + 1, 0);
+        gridlayout_keys->addWidget(spin_key_interval, index + 1, 1);
+        gridlayout_keys->addWidget(check_default, index + 1, 2);
     }
+
+    vlayout_main->addLayout(gridlayout_keys);
 
     vlayout_main->addWidget(get_h_line(main_widget));
 

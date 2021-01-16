@@ -53,7 +53,8 @@ struct SConfigData
 {
     bool fxSwitch[10]; //Fx开关
     double fxCD[10]; //单个按键的间隔
-    double fxInterval; //Fx排队间隔
+    double globalInterval; //Fx排队间隔
+    int defaultKey; //缺省技能的位置，没有则为-1
 
     bool playerSwitch; //人物补给开关
     int playerPercent; //人物补给百分比
@@ -66,13 +67,14 @@ struct SConfigData
     QString title; //游戏窗口标题
     QByteArray hash; //角色名图片hash
 
-    int x, y; //程序位置
+    int x, y; //程序窗口位置
 
     SConfigData()
     {
         std::fill(fxSwitch, fxSwitch + 10, false);
         std::fill(fxCD, fxCD + 10, 1.0);
-        fxInterval = 0.75;
+        globalInterval = 0.75;
+        defaultKey = -1;
 
         playerSwitch = false;
         playerPercent = 50;
@@ -107,6 +109,7 @@ private:
         QDoubleSpinBox* spin_global_interval;
         std::array<QCheckBox*, 10> key_checks;
         std::array<QDoubleSpinBox*, 10> key_intervals;
+        std::array<QCheckBox*, 10> key_defaults;
         QLabel* label_player_image;
         QCheckBox* check_player_supply;
         QSpinBox* spin_player_supply;
@@ -163,6 +166,8 @@ private:
     HWND currentGameWindow;
     HDC currentDC, currentCDC;
     QByteArray currentHash;
+    int currentDefaultKey;
+    bool defaultKeyTriggered;
 
     //在启动的时候运行一次，根据保存的hash查找对应游戏窗口并设置窗口标题
     void autoSelectAndRenameGameWindow(const QByteArray& hash);
@@ -183,6 +188,8 @@ private:
 
     void changeWindowTitle();
 
+    //尝试执行某个按键
+    void tryPressKey(HWND window, int key_index, bool force);
     //执行某个按键
     void pressKey(HWND window, UINT code);
 

@@ -147,7 +147,7 @@ void FxMainWindow::pressProc()
         return;
     }
 
-    if (currentDefaultKey != -1 && !defaultKeyTriggered)
+    if (currentDefaultKey != -1 && !defaultKeyTriggered && ui.key_checks[currentDefaultKey]->isChecked())
     {
         tryPressKey(gameWindows[window_index], currentDefaultKey, true);
         defaultKeyTriggered = true;
@@ -155,7 +155,6 @@ void FxMainWindow::pressProc()
 
     for (int key_index = 0; key_index < 10; ++key_index)
     {
-        //保证缺省键只触发一次
         if (key_index == currentDefaultKey || !ui.key_checks[key_index]->isChecked())
         {
             continue;
@@ -310,9 +309,9 @@ void FxMainWindow::tryPressKey(HWND window, int key_index, bool force)
     std::chrono::milliseconds selfInterval(static_cast<long long>(ui.key_intervals[key_index]->value() * 1000));
     std::chrono::milliseconds anyInterval(static_cast<long long>(ui.spin_global_interval->value() * 1000));
 
-    if (force || differFromSelf >= selfInterval && differFromAny >= anyInterval)
+    if (force || (differFromSelf >= selfInterval && differFromAny >= anyInterval))
     {
-        lastPressedTimePoint[key_index] += selfInterval;
+        lastPressedTimePoint[key_index] = nowTimePoint;
         lastAnyPressedTimePoint = nowTimePoint;
 
         pressKey(window, VK_F1 + key_index);
@@ -719,6 +718,7 @@ void FxMainWindow::setupUI()
     vlayout_main->addWidget(ui.btn_scan);
 
     ui.combo_windows = new QComboBox(main_widget);
+    ui.combo_windows->setIconSize(playerNameRect.size());
     ui.combo_windows->setItemDelegate(new CharacterBoxDelegate);
     connect(ui.combo_windows, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [this](int index)
         {

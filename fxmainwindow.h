@@ -73,7 +73,7 @@ struct SConfigData
     {
         std::fill(fxSwitch, fxSwitch + 10, false);
         std::fill(fxCD, fxCD + 10, 1.0);
-        globalInterval = 0.75;
+        globalInterval = 0.8;
         defaultKey = -1;
 
         playerSwitch = false;

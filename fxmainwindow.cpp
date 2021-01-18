@@ -271,16 +271,6 @@ void FxMainWindow::scanGameWindows()
     }
 
     ui.combo_windows->blockSignals(false);
-
-    if (found + invalid == 0)
-    {
-        QMessageBox::information(this, QStringLiteral("摘要"), QStringLiteral("没有找到游戏窗口。"));
-    }
-    else if (invalid != 0)
-    {
-        QString summary = QStringLiteral("共找到 %1 个游戏窗口，其中截图成功 %2 个，失败 %3 个。").arg(found + invalid).arg(found).arg(invalid);
-        QMessageBox::information(this, QStringLiteral("摘要"), summary);
-    }
 }
 
 void FxMainWindow::changeWindowTitle()
@@ -543,7 +533,7 @@ SConfigData FxMainWindow::jsonToConfig(QJsonObject json)
         }
     }
 
-    result.globalInterval = json.take("Interval").toDouble(0.7);
+    result.globalInterval = json.take("Interval").toDouble(0.8);
     result.defaultKey = json.take("DefaultKey").toInt(-1);
 
     result.playerSwitch = json.take("PlayerSwitch").toBool(false);
@@ -741,9 +731,7 @@ void FxMainWindow::setupUI()
 
     ui.line_title = new QLineEdit(main_widget);
     auto hlayout_title = new QHBoxLayout(main_widget);
-    auto label_title = new QLabel(QStringLiteral("窗口标题"), main_widget);
-    label_title->setToolTip(QStringLiteral("方便OBS之类的软件区分/自动切换捕获窗口。"));
-    hlayout_title->addWidget(label_title);
+    hlayout_title->addWidget(new QLabel(QStringLiteral("窗口标题"), main_widget));
     hlayout_title->addWidget(ui.line_title, 1);
     vlayout_main->addLayout(hlayout_title);
 
@@ -789,30 +777,19 @@ void FxMainWindow::setupUI()
     ui.spin_global_interval->setMinimum(0.1);
     ui.spin_global_interval->setMaximum(365.0);
     ui.spin_global_interval->setSingleStep(0.01);
-    ui.spin_global_interval->setValue(0.75);
+    ui.spin_global_interval->setValue(0.8);
     auto hlayout_press_interval = new QHBoxLayout(main_widget);
-    auto label_global_switch = new QLabel(QStringLiteral("全局间隔"), main_widget);
-    label_global_switch->setToolTip(QStringLiteral("任意两次触发按键的最小间隔，用于若干个技能同时使用的情况。\n"
-        "根据武器的施法速度设置合适的值。\n"
-        "比如治疗+解衰弱交替施法：兔牙衔接较快，全局间隔设置为0.7秒，两个技能间隔均设置为1.7秒，即可自动交替使用。"));
     hlayout_press_interval->addStretch();
-    hlayout_press_interval->addWidget(label_global_switch);
+    hlayout_press_interval->addWidget(new QLabel(QStringLiteral("全局间隔"), main_widget));
     hlayout_press_interval->addWidget(ui.spin_global_interval);
     hlayout_press_interval->addStretch();
     vlayout_main->addLayout(hlayout_press_interval);
-    vlayout_main->addWidget(get_h_line());
+    vlayout_main->addWidget(get_h_line(main_widget));
 
     auto gridlayout_keys = new QGridLayout(main_widget);
-    auto label_default_skill = new QLabel(QStringLiteral("是缺省技能"), main_widget);
-    label_default_skill->setToolTip(QStringLiteral("指在游戏中右键绿框的技能，最多能设置一个。\n"
-        "缺省技能在'全局开关'打开时会首先被触发且只触发一次，建议只用于平砍。\n"
-        "药师治疗术等技能可以取消游戏内缺省，通过设置合适的间隔达到无缝衔接。"));
     gridlayout_keys->addWidget(new QLabel(QStringLiteral("启用"), main_widget), 0, 0);
-    auto label_interval = new QLabel(QStringLiteral("间隔"), main_widget);
-    label_interval->setToolTip(QStringLiteral("两次触发此按键的间隔，设置成CD+施法时间，即可做到无缝衔接，可以在游戏中试出合适的值。\n"
-        "因为已经提供了一位小数，不建议像老魔手一样全部设置成1.0秒。"));
-    gridlayout_keys->addWidget(label_interval, 0, 1);
-    gridlayout_keys->addWidget(label_default_skill, 0, 2);
+    gridlayout_keys->addWidget(new QLabel(QStringLiteral("间隔"), main_widget), 0, 1);
+    gridlayout_keys->addWidget(new QLabel(QStringLiteral("是缺省技能"), main_widget), 0, 2);
 
     for (int index = 0; index < 10; ++index)
     {
@@ -867,8 +844,8 @@ void FxMainWindow::setupUI()
     auto hlayout_player_image = new QHBoxLayout(main_widget);
     ui.label_player_image = new QLabel(main_widget);
     ui.label_player_image->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    ui.label_player_image->setMinimumSize(89, 7);
-    ui.label_player_image->setMaximumSize(89, 7);
+    ui.label_player_image->setMinimumSize(playerHealthRect.size());
+    ui.label_player_image->setMaximumSize(playerHealthRect.size());
     ui.label_player_image->setFrameShape(QFrame::NoFrame);
     ui.label_player_image->setScaledContents(true);
     hlayout_player_image->addStretch();
@@ -907,8 +884,8 @@ void FxMainWindow::setupUI()
     auto hlayout_pet_image = new QHBoxLayout(main_widget);
     ui.label_pet_image = new QLabel(main_widget);
     ui.label_pet_image->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    ui.label_pet_image->setMinimumSize(34, 34);
-    ui.label_pet_image->setMaximumSize(34, 34);
+    ui.label_pet_image->setMinimumSize(petResourceRect.size());
+    ui.label_pet_image->setMaximumSize(petResourceRect.size());
     ui.label_pet_image->setFrameShape(QFrame::NoFrame);
     ui.label_pet_image->setScaledContents(true);
     hlayout_pet_image->addStretch();

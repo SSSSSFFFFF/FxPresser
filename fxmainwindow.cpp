@@ -8,6 +8,8 @@
 #include <QCryptographicHash>
 #include <QApplication>
 #include <QButtonGroup>
+#include <Psapi.h>
+#pragma comment(lib, "psapi.lib")
 
 //角色名取样区域
 static const QRect playerNameRect{ 80,22,90,14 };
@@ -237,15 +239,19 @@ void FxMainWindow::scanGameWindows()
     ui.combo_windows->clear();
     ui.check_global_switch->setChecked(false);
 
-    HWND hWindow = FindWindowW(L"QQSwordWinClass", nullptr);
+    HWND hWindow = FindWindowW(L"QQSwordWinClass", nullptr); //暂不知道是不是FO/FFO独有类名
 
     ui.combo_windows->blockSignals(true);
 
     while (hWindow != nullptr)
     {
-        GetWindowTextW(hWindow, c_string, 512);
+        DWORD pid;
+        GetWindowThreadProcessId(hWindow, &pid);
+        HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid);
+        GetProcessImageFileNameW(hProcess, c_string, 512);
+        CloseHandle(hProcess);
 
-        if (QString::fromWCharArray(c_string).startsWith(QStringLiteral("QQ自由幻想")))
+        if (QString::fromWCharArray(c_string).endsWith(QStringLiteral("\\qqffo.exe"))) //此处要跟FO区分，不区分则两游戏通用。
         {
             initGDI(hWindow);
             QImage playerNameImage = getGamePicture(playerNameRect);
@@ -286,7 +292,7 @@ void FxMainWindow::changeWindowTitle()
 
     if (!text.isEmpty())
     {
-        SetWindowTextW(gameWindows[window_index], QStringLiteral("QQ自由幻想 - %1").arg(text).toStdWString().c_str());
+        SetWindowTextW(gameWindows[window_index], text.toStdWString().c_str());
     }
 }
 

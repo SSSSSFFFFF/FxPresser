@@ -30,7 +30,7 @@
 1. **窗口标题**</br>
 随意填写，留空则不会修改窗口标题。</br>
 ![](https://raw.githubusercontent.com/ClansChen/MDPic/main/FxPresser/set_title.png)</br></br>
-然后点击**修改窗口标题**按钮，即可看到效果</br>
+然后点击**修改窗口标题**按钮，即可看到效果(程序已更新，实际上不会添加"QQ自由幻想 - "前缀)</br>
 ![](https://raw.githubusercontent.com/ClansChen/MDPic/main/FxPresser/renamed_title.png)</br></br>
 2. **全局间隔**</br>
 此间隔是任意两个按键触发的最小间隔，后来的按键会被推迟至少这么长的时间。防止多个按键都要触发的时候，游戏中却把后来的技能卡掉。根据携带武器的施法衔接速度，在游戏中试出合适的值。</br></br>

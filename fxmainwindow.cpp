@@ -249,7 +249,7 @@ QImage FxMainWindow::getGamePicture(HWND window, QRect rect)
     HDC dc = GetDC(window);
     HDC cdc = CreateCompatibleDC(dc);
 
-    HBITMAP hBitmap = CreateCompatibleBitmap(cdc, rect.width(), rect.height());
+    HBITMAP hBitmap = CreateCompatibleBitmap(dc, rect.width(), rect.height());
     SelectObject(cdc, hBitmap);
 
     BitBlt(cdc, 0, 0, rect.width(), rect.height(), dc, rect.left(), rect.top(), SRCCOPY);

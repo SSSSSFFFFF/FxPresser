@@ -4,7 +4,9 @@
 
 int main(int argc, char *argv[])
 {
+    QFont fnt(QStringLiteral("微软雅黑"),10);
     QApplication a(argc, argv);
+    QApplication::setFont(fnt);
     FxMainWindow w;
 
     //获取读进程文件名的权限
